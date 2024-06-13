@@ -15,6 +15,18 @@ used_words_dict = {}
 # Set to keep track of blacklisted words
 blacklist = set()
 
+# Define the user ID and the message pattern to trigger the join command
+user_id_to_watch = 6257270528
+message_to_trigger = "naruto join the game"
+command_to_send = "/join@on9wordchainbot"
+
+@Blade_bot.on(events.NewMessage(from_users=user_id_to_watch, pattern=re.escape(message_to_trigger)))
+async def handle_join_game_message(event):
+    """Handle incoming messages from a specific user to trigger a join command."""
+    await Blade_bot.send_message("on9wordchainbot", command_to_send)
+    await event.reply("Joining the game...")
+
+
 def fetch_words():
     """Fetch words from a local wordlist.txt file and filter them."""
     with open("wordlist.txt", "r") as file:
