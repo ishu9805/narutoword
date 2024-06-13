@@ -1,14 +1,18 @@
-FROM nikolaik/python-nodejs:python3.10-nodejs19
+# Use a base image with Python installed
+FROM python:3.8-slim
 
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends ffmpeg \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+# Set the working directory in the container
+WORKDIR /app
 
+# Copy local files to the container
 COPY . /app/
-WORKDIR /app/
-RUN pip3 install --no-cache-dir -U -r requirements.txt
 
+# Install Python dependencies
+RUN pip install --upgrade pip \
+    && pip install -r requirements.txt
 
+# Expose port 8080 for Flask
+EXPOSE 8080
 
-CMD ["python3", "bot.py"]
+# Command to run the application
+CMD ["python", "bot.py"]
