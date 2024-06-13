@@ -1,0 +1,8 @@
+pymongo
+pymongo[srv]
+requests
+pyperclip
+pyrogram
+tgcrypto
+flask
+nltk
