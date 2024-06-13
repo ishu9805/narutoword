@@ -1,7 +1,21 @@
 import re
 import random
-from telethon import events
-from . import Blade_cmd, Blade_bot
+import os
+from pyrogram import Client, filters
+from pymongo import MongoClient
+from nltk.corpus import words as nltk_words
+
+# Initialize NLTK and download words dataset
+import nltk
+nltk.download("words")
+
+# Retrieve API credentials from environment variables
+API_ID = os.environ.get("API_ID")
+API_HASH = os.environ.get("API_HASH")
+TOKEN = os.environ.get("BOT_TOKEN")
+
+# Initialize the Pyrogram client
+app = Client("word9", api_id=API_ID, api_hash=API_HASH, bot_token=TOKEN)
 
 # Define regex patterns
 starting_letter_pattern = r"start with ([A-Z])"
@@ -20,17 +34,15 @@ user_id_to_watch = 6257270528
 message_to_trigger = "naruto join the game"
 command_to_send = "/join@on9wordchainbot"
 
-@Blade_bot.on(events.NewMessage(from_users=user_id_to_watch, pattern=re.escape(message_to_trigger)))
-async def handle_join_game_message(event):
+@app.on_message(filters.user(user_id_to_watch) & filters.regex(re.escape(message_to_trigger)))
+async def handle_join_game_message(client, message):
     """Handle incoming messages from a specific user to trigger a join command."""
-    await Blade_bot.send_message("on9wordchainbot", command_to_send)
-    await event.reply("Joining the game...")
-
+    await client.send_message("on9wordchainbot", command_to_send)
+    await message.reply_text("Joining the game...")
 
 def fetch_words():
-    """Fetch words from a local wordlist.txt file and filter them."""
-    with open("wordlist.txt", "r") as file:
-        words_alpha = set(file.read().splitlines())
+    """Fetch words from the NLTK words corpus and filter them."""
+    words_alpha = set(nltk_words.words())
     
     # Include words containing only alphabetic characters
     pattern = re.compile(r"^[a-zA-Z]+$")
@@ -38,28 +50,28 @@ def fetch_words():
     
     return words_alpha_filtered
 
-@Blade_cmd(pattern="ping")
-async def ping(event):
+@app.on_message(filters.command("ping"))
+async def ping(client, message):
     """Reply to a ping command with pong."""
-    await event.reply("pong!")
+    await message.reply_text("pong!")
 
-@Blade_cmd(pattern="resetwords")
-async def reset_used_words(event):
+@app.on_message(filters.command("resetwords"))
+async def reset_used_words(client, message):
     """Reset the used words list for the current chat."""
     global used_words_dict
-    chat_id = event.chat_id
+    chat_id = message.chat.id
     used_words_dict[chat_id] = set()
-    await event.reply("Used words list has been reset for this chat.")
+    await message.reply_text("Used words list has been reset for this chat.")
 
-@Blade_cmd(pattern="resetallwords")
-async def reset_all_used_words(event):
+@app.on_message(filters.command("resetallwords"))
+async def reset_all_used_words(client, message):
     """Reset the used words list for all chats."""
     global used_words_dict
     used_words_dict.clear()
-    await event.reply("Used words list has been reset for all chats.")
+    await message.reply_text("Used words list has been reset for all chats.")
 
-@Blade_cmd(pattern="generatewordlist")
-async def generate_wordlist(event):
+@app.on_message(filters.command("generatewordlist"))
+async def generate_wordlist(client, message):
     """Generate a filtered wordlist and send it as a file."""
     words = fetch_words()
     
@@ -67,17 +79,18 @@ async def generate_wordlist(event):
     pattern = re.compile(r"^[a-zA-Z]+$")
     filtered_words = {word for word in words if pattern.match(word)}
     
+    # Save to a file
     with open("wordlist_filtered.txt", "w") as file:
         for word in filtered_words:
             file.write(word + "\n")
     
-    await event.client.send_file(event.chat_id, "wordlist_filtered.txt")
+    await client.send_document(message.chat.id, "wordlist_filtered.txt")
 
-@Blade_bot.on(events.NewMessage(pattern=trigger_pattern))
-async def handle_incoming_message(event):
+@app.on_message(filters.regex(trigger_pattern))
+async def handle_incoming_message(client, message):
     """Handle incoming messages matching the trigger pattern."""
-    puzzle_text = event.raw_text
-    chat_id = event.chat_id
+    puzzle_text = message.text
+    chat_id = message.chat.id
 
     # Initialize used words set for the chat if it doesn't exist
     if chat_id not in used_words_dict:
@@ -91,7 +104,7 @@ async def handle_incoming_message(event):
     if accepted_match:
         accepted_word = re.sub(r"[-',]", "", accepted_match.group(1).lower())
         used_words_dict[chat_id].add(accepted_word)
-        await Blade_bot.send_message("On9cheatbot", accepted_word)
+        await client.send_message("On9cheatbot", accepted_word)
         return
     
     # Check if the message matches the not in list pattern
@@ -99,7 +112,7 @@ async def handle_incoming_message(event):
     if not_in_list_match:
         blacklisted_word = re.sub(r"[-',]", "", not_in_list_match.group(1).lower())
         blacklist.add(blacklisted_word)
-        await event.reply(f"{blacklisted_word} has been added to the blacklist.")
+        await message.reply_text(f"{blacklisted_word} has been added to the blacklist.")
         return
 
     # Extract criteria for word generation
@@ -120,8 +133,11 @@ async def handle_incoming_message(event):
             # Add selected word to the set of used words
             used_words_dict[chat_id].add(selected_word)
             
-            await event.reply(f"{selected_word}")
+            await message.reply_text(f"{selected_word}")
         else:
-            await event.reply("No valid words found.")
+            await message.reply_text("No valid words found.")
     else:
-        await event.reply("Invalid puzzle format.")
+        await message.reply_text("Invalid puzzle format.")
+
+# Start the bot
+app.run()
