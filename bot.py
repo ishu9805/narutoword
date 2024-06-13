@@ -45,7 +45,7 @@ async def handle_reset_used_words_message(client, message):
     """Handle incoming messages from a specific user to reset the used words list for all chats."""
     global used_words_dict
     used_words_dict.clear()
-    await message.reply_text("Used words list has been reset for all chats.")
+    await message.reply_text("ho gya ab fir se khelein.")
 
 def fetch_words():
     """Fetch words from the NLTK words corpus and filter them."""
@@ -68,14 +68,14 @@ async def reset_used_words(client, message):
     global used_words_dict
     chat_id = message.chat.id
     used_words_dict[chat_id] = set()
-    await message.reply_text("Used words list has been reset for this chat.")
+    await message.reply_text("ye bhi ho gya.")
 
 @app.on_message(filters.command("resetallwords"))
 async def reset_all_used_words(client, message):
     """Reset the used words list for all chats."""
     global used_words_dict
     used_words_dict.clear()
-    await message.reply_text("Used words list has been reset for all chats.")
+    await message.reply_text("ho gya ab khelein.")
 
 @app.on_message(filters.command("generatewordlist"))
 async def generate_wordlist(client, message):
@@ -119,7 +119,7 @@ async def handle_incoming_message(client, message):
     if not_in_list_match:
         blacklisted_word = re.sub(r"[-',]", "", not_in_list_match.group(1).lower())
         blacklist.add(blacklisted_word)
-        await message.reply_text(f"{blacklisted_word} has been added to the blacklist.")
+        await message.reply_text(f"ye shi tha.")
         return
 
     # Extract criteria for word generation
@@ -142,9 +142,9 @@ async def handle_incoming_message(client, message):
             
             await message.reply_text(f"{selected_word}")
         else:
-            await message.reply_text("No valid words found.")
+            await message.reply_text("me toh gya ab.")
     else:
-        await message.reply_text("Invalid puzzle format.")
+        await message.reply_text("ye nhi khelunga.")
 
 # Start the bot
 app.run()
