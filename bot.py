@@ -11,19 +11,20 @@ API_HASH = os.environ.get("API_HASH")
 TOKEN = os.environ.get("BOT_TOKEN")
 
 # Initialize the Pyrogram client
-app = Client("word9", api_id=API_ID, api_hash=API_HASH, session_string=TOKEN)
+app = Client("word9", api_id=API_ID, api_hash=API_HASH, bot_token=TOKEN)
 server = Flask(__name__)
 
 @server.route("/")
 def home():
     return "Bot is running"
-    
+
 # Define regex patterns
 starting_letter_pattern = r"start with ([A-Z])"
 min_length_pattern = r"include at least (\d+) letters"
 trigger_pattern = r"Turn: 量­­‌؜「 Bʟᴀᴅᴇ 」؜⦁­­­឵ Nᴀʀᴜᴛᴏ.*"
 accepted_pattern = r"(\w+) is accepted"
 not_in_list_pattern = r"(\w+) is not in my list of words"
+used_word_pattern = r"(\w+) has been used"
 
 # Dictionary to keep track of used words per group
 used_words_dict = {}
@@ -123,19 +124,37 @@ async def handle_incoming_message(client, message):
         starting_letter = starting_letter_match.group(1).lower()
         min_length = int(min_length_match.group(1))
 
-        # Filter valid words based on criteria and excluding blacklisted words
-        valid_words = [word for word in words if word.startswith(starting_letter) and len(word) >= min_length and word not in used_words_dict[chat_id] and word not in blacklist]
+        while True:
+            # Filter valid words based on criteria and excluding blacklisted words
+            valid_words = [word for word in words if word.startswith(starting_letter) and len(word) >= min_length and word not in used_words_dict[chat_id] and word not in blacklist]
 
-        if valid_words:
-            # Randomly choose one word
-            selected_word = random.choice(valid_words)
-            
-            # Add selected word to the set of used words
-            used_words_dict[chat_id].add(selected_word)
-            
-            await message.reply_text(f"{selected_word}")
-        else:
-            await message.reply_text("me toh gya ab.")
+            if valid_words:
+                # Randomly choose one word
+                selected_word = random.choice(valid_words)
+                
+                # Send the selected word
+                await message.reply_text(f"{selected_word}")
+
+                # Wait for a response to see if the word was accepted
+                response = await app.listen(chat_id, filters.user(user_id_to_watch) & filters.regex(accepted_pattern))
+                if response:
+                    accepted_match = re.search(accepted_pattern, response.text)
+                    if accepted_match:
+                        accepted_word = re.sub(r"[-',]", "", accepted_match.group(1).lower())
+                        used_words_dict[chat_id].add(accepted_word)
+                        await client.send_message("On9cheatbot", accepted_word)
+                        break
+                else:
+                    used_word_match = re.search(used_word_pattern, response.text)
+                    if used_word_match:
+                        used_word = re.sub(r"[-',]", "", used_word_match.group(1).lower())
+                        used_words_dict[chat_id].add(used_word)
+                    else:
+                        await message.reply_text("me toh gya ab.")
+                        break
+            else:
+                await message.reply_text("me toh gya ab.")
+                break
     else:
         await message.reply_text("ye nhi khelunga.")
 
