@@ -36,7 +36,7 @@ join_message_trigger = "naruto join the game"
 reset_message_trigger = "naruto reset the used words"
 command_to_send = "/join@on9wordchainbot"
 
-@app.on_message(filters.user(user_id_to_watch) & filters.regex(re.escape(join_message_trigger)))
+@app.on_message(filters.me & filters.user(user_id_to_watch) & filters.regex(re.escape(join_message_trigger)))
 async def handle_join_game_message(client, message):
     """Handle incoming messages from a specific user to trigger a join command in a group."""
     await client.send_message(message.chat.id, command_to_send)
@@ -54,12 +54,12 @@ def fetch_words():
         words = set(word.strip().lower() for word in file if word.strip().isalpha())
     return words
 
-@app.on_message(filters.command("ping"))
+@app.on_message(filters.me & filters.command("ping"))
 async def ping(client, message):
     """Reply to a ping command with pong."""
     await message.reply_text("pong!")
 
-@app.on_message(filters.command("resetwords"))
+@app.on_message(filters.me & filters.command("resetwords"))
 async def reset_used_words(client, message):
     """Reset the used words list for the current chat."""
     global used_words_dict
@@ -67,14 +67,14 @@ async def reset_used_words(client, message):
     used_words_dict[chat_id] = set()
     await message.reply_text("ye bhi ho gya.")
 
-@app.on_message(filters.command("resetallwords"))
+@app.on_message(filters.me & filters.command("resetallwords"))
 async def reset_all_used_words(client, message):
     """Reset the used words list for all chats."""
     global used_words_dict
     used_words_dict.clear()
     await message.reply_text("ho gya ab khelein.")
 
-@app.on_message(filters.command("generatewordlist"))
+@app.on_message(filters.me & filters.command("generatewordlist"))
 async def generate_wordlist(client, message):
     """Generate a filtered wordlist and send it as a file."""
     words = fetch_words()
