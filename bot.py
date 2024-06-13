@@ -20,7 +20,7 @@ app = Client("word9", api_id=API_ID, api_hash=API_HASH, bot_token=TOKEN)
 # Define regex patterns
 starting_letter_pattern = r"start with ([A-Z])"
 min_length_pattern = r"include at least (\d+) letters"
-trigger_pattern = r"Turn: 〨 Nᴀʀᴜᴛᴏ ؜Ꮶɪɴɢ ⌯؜ Ꮓx..*"
+trigger_pattern = r"Turn: 量­­‌؜「 Bʟᴀᴅᴇ 」؜⦁­­­ Nᴀʀᴜᴛᴏ..*"
 accepted_pattern = r"(\w+) is accepted"
 not_in_list_pattern = r"(\w+) is not in my list of words"
 
@@ -29,16 +29,23 @@ used_words_dict = {}
 # Set to keep track of blacklisted words
 blacklist = set()
 
-# Define the user ID and the message pattern to trigger the join command
+# Define the user ID and the message patterns to trigger specific actions
 user_id_to_watch = 6257270528
-message_to_trigger = "naruto join the game"
+join_message_trigger = "naruto join the game"
+reset_message_trigger = "naruto reset the used words"
 command_to_send = "/join@on9wordchainbot"
 
-@app.on_message(filters.user(user_id_to_watch) & filters.regex(re.escape(message_to_trigger)))
+@app.on_message(filters.user(user_id_to_watch) & filters.regex(re.escape(join_message_trigger)))
 async def handle_join_game_message(client, message):
-    """Handle incoming messages from a specific user to trigger a join command."""
-    await client.send_message("on9wordchainbot", command_to_send)
-    await message.reply_text("Joining the game...")
+    """Handle incoming messages from a specific user to trigger a join command in a group."""
+    await client.send_message(message.chat.id, command_to_send)
+
+@app.on_message(filters.user(user_id_to_watch) & filters.regex(re.escape(reset_message_trigger)))
+async def handle_reset_used_words_message(client, message):
+    """Handle incoming messages from a specific user to reset the used words list for all chats."""
+    global used_words_dict
+    used_words_dict.clear()
+    await message.reply_text("Used words list has been reset for all chats.")
 
 def fetch_words():
     """Fetch words from the NLTK words corpus and filter them."""
