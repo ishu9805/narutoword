@@ -2,12 +2,6 @@ import re
 import random
 import os
 from pyrogram import Client, filters
-from pymongo import MongoClient
-from nltk.corpus import words as nltk_words
-
-# Initialize NLTK and download words dataset
-import nltk
-nltk.download("words")
 
 # Retrieve API credentials from environment variables
 API_ID = os.environ.get("API_ID")
@@ -48,14 +42,10 @@ async def handle_reset_used_words_message(client, message):
     await message.reply_text("ho gya ab fir se khelein.")
 
 def fetch_words():
-    """Fetch words from the NLTK words corpus and filter them."""
-    words_alpha = set(nltk_words.words())
-    
-    # Include words containing only alphabetic characters
-    pattern = re.compile(r"^[a-zA-Z]+$")
-    words_alpha_filtered = {re.sub(r"[-',]", "", word) for word in words_alpha if pattern.match(re.sub(r"[-',]", "", word))}
-    
-    return words_alpha_filtered
+    """Fetch words from the wordlist.txt file and filter them."""
+    with open("wordlist.txt", "r") as file:
+        words = set(word.strip().lower() for word in file if word.strip().isalpha())
+    return words
 
 @app.on_message(filters.command("ping"))
 async def ping(client, message):
@@ -82,13 +72,9 @@ async def generate_wordlist(client, message):
     """Generate a filtered wordlist and send it as a file."""
     words = fetch_words()
     
-    # Filter out words containing non-alphabetic characters
-    pattern = re.compile(r"^[a-zA-Z]+$")
-    filtered_words = {word for word in words if pattern.match(word)}
-    
     # Save to a file
     with open("wordlist_filtered.txt", "w") as file:
-        for word in filtered_words:
+        for word in words:
             file.write(word + "\n")
     
     await client.send_document(message.chat.id, "wordlist_filtered.txt")
