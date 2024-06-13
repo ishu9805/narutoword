@@ -32,11 +32,11 @@ blacklist = set()
 
 # Define the user ID and the message patterns to trigger specific actions
 user_id_to_watch = 6257270528
-join_message_trigger = "naruto join the game"
-reset_message_trigger = "naruto reset the used words"
+join_message_trigger = "Naruto join the game"
+reset_message_trigger = "Naruto reset the used words"
 command_to_send = "/join@on9wordchainbot"
 
-@app.on_message(filters.me & filters.user(user_id_to_watch) & filters.regex(re.escape(join_message_trigger)))
+@app.on_message(filters.user(user_id_to_watch) & filters.regex(re.escape(join_message_trigger)))
 async def handle_join_game_message(client, message):
     """Handle incoming messages from a specific user to trigger a join command in a group."""
     await client.send_message(message.chat.id, command_to_send)
