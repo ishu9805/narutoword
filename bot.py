@@ -2,6 +2,8 @@ import re
 import random
 import os
 from pyrogram import Client, filters
+from threading import Thread
+from flask import Flask
 
 # Retrieve API credentials from environment variables
 API_ID = os.environ.get("API_ID")
@@ -9,8 +11,13 @@ API_HASH = os.environ.get("API_HASH")
 TOKEN = os.environ.get("BOT_TOKEN")
 
 # Initialize the Pyrogram client
-app = Client("word9", api_id=API_ID, api_hash=API_HASH, bot_token=TOKEN)
+app = Client("word9", api_id=API_ID, api_hash=API_HASH, session_string=TOKEN)
+server = Flask(__name__)
 
+@server.route("/")
+def home():
+    return "Bot is running"
+    
 # Define regex patterns
 starting_letter_pattern = r"start with ([A-Z])"
 min_length_pattern = r"include at least (\d+) letters"
@@ -132,5 +139,10 @@ async def handle_incoming_message(client, message):
     else:
         await message.reply_text("ye nhi khelunga.")
 
-# Start the bot
-app.run()
+def run():
+    server.run(host="0.0.0.0", port=int(os.environ.get('PORT', 8080)))
+
+if __name__ == "__main__":
+    t = Thread(target=run)
+    t.start()
+    app.run()
