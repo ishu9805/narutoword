@@ -21,7 +21,7 @@ def home():
 # Define regex patterns
 starting_letter_pattern = r"start with ([A-Z])"
 min_length_pattern = r"include at least (\d+) letters"
-trigger_pattern = r"Turn: 量­­‌؜「 Bʟᴀᴅᴇ 」؜⦁­­­ Nᴀʀᴜᴛᴏ..*"
+trigger_pattern = r"Turn: 量­­‌؜「 Bʟᴀᴅᴇ 」؜⦁­­­឵ Nᴀʀᴜᴛᴏ.*"
 accepted_pattern = r"(\w+) is accepted"
 not_in_list_pattern = r"(\w+) is not in my list of words"
 
