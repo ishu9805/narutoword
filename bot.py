@@ -11,7 +11,7 @@ API_HASH = os.environ.get("API_HASH")
 TOKEN = os.environ.get("BOT_TOKEN")
 
 # Initialize the Pyrogram client
-app = Client("word9", api_id=API_ID, api_hash=API_HASH, bot_token=TOKEN)
+app = Client("word9", api_id=API_ID, api_hash=API_HASH, session_string=TOKEN)
 server = Flask(__name__)
 
 @server.route("/")
