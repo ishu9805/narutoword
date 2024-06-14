@@ -37,12 +37,12 @@ join_message_trigger = "Naruto join the game"
 reset_message_trigger = "Naruto reset the used words"
 command_to_send = "/join@on9wordchainbot"
 
-@app.on_message(filters.user(user_id_to_watch) & filters.regex(re.escape(join_message_trigger)))
+@app.on_message(filters.group & filters.user(user_id_to_watch) & filters.regex(re.escape(join_message_trigger)))
 async def handle_join_game_message(client, message):
     """Handle incoming messages from a specific user to trigger a join command in a group."""
     await client.send_message(message.chat.id, command_to_send)
 
-@app.on_message(filters.user(user_id_to_watch) & filters.regex(re.escape(reset_message_trigger)))
+@app.on_message(filters.group & filters.user(user_id_to_watch) & filters.regex(re.escape(reset_message_trigger)))
 async def handle_reset_used_words_message(client, message):
     """Handle incoming messages from a specific user to reset the used words list for all chats."""
     global used_words_dict
@@ -113,7 +113,7 @@ async def handle_incoming_message(client, message):
     if not_in_list_match:
         blacklisted_word = re.sub(r"[-',]", "", not_in_list_match.group(1).lower())
         blacklist.add(blacklisted_word)
-        await message.reply_text(f"ye shi tha.")
+        await message.reply_text(f"{blacklisted_word} has been added to the blacklist.")
         return
 
     # Extract criteria for word generation
@@ -124,39 +124,35 @@ async def handle_incoming_message(client, message):
         starting_letter = starting_letter_match.group(1).lower()
         min_length = int(min_length_match.group(1))
 
-        while True:
-            # Filter valid words based on criteria and excluding blacklisted words
-            valid_words = [word for word in words if word.startswith(starting_letter) and len(word) >= min_length and word not in used_words_dict[chat_id] and word not in blacklist]
+        # Filter valid words based on criteria and excluding blacklisted words
+        valid_words = [word for word in words if word.startswith(starting_letter) and len(word) >= min_length and word not in used_words_dict[chat_id] and word not in blacklist]
 
-            if valid_words:
-                # Randomly choose one word
-                selected_word = random.choice(valid_words)
-                
-                # Send the selected word
-                await message.reply_text(f"{selected_word}")
+        if valid_words:
+            # Randomly choose one word
+            selected_word = random.choice(valid_words)
+            
+            # Send the selected word
+            await message.reply_text(f"{selected_word}")
 
-                # Wait for a response to see if the word was accepted
-                response = await app.listen(chat_id, filters.user(user_id_to_watch) & filters.regex(accepted_pattern))
+            # Wait for a response to see if the word was accepted
+            async with client:
+                response = await client.listen(chat_id, filters.user(user_id_to_watch) & (filters.regex(accepted_pattern) | filters.regex(used_word_pattern) | filters.regex(not_in_list_pattern)))
                 if response:
-                    accepted_match = re.search(accepted_pattern, response.text)
-                    if accepted_match:
-                        accepted_word = re.sub(r"[-',]", "", accepted_match.group(1).lower())
+                    if re.search(accepted_pattern, response.text):
+                        accepted_word = re.sub(r"[-',]", "", re.search(accepted_pattern, response.text).group(1).lower())
                         used_words_dict[chat_id].add(accepted_word)
                         await client.send_message("On9cheatbot", accepted_word)
-                        break
-                else:
-                    used_word_match = re.search(used_word_pattern, response.text)
-                    if used_word_match:
-                        used_word = re.sub(r"[-',]", "", used_word_match.group(1).lower())
+                    elif re.search(used_word_pattern, response.text):
+                        used_word = re.sub(r"[-',]", "", re.search(used_word_pattern, response.text).group(1).lower())
                         used_words_dict[chat_id].add(used_word)
-                    else:
-                        await message.reply_text("me toh gya ab.")
-                        break
-            else:
-                await message.reply_text("me toh gya ab.")
-                break
+                    elif re.search(not_in_list_pattern, response.text):
+                        blacklisted_word = re.sub(r"[-',]", "", re.search(not_in_list_pattern, response.text).group(1).lower())
+                        blacklist.add(blacklisted_word)
+                        await message.reply_text(f"{blacklisted_word} has been added to the blacklist.")
+        else:
+            await message.reply_text("No valid words found.")
     else:
-        await message.reply_text("ye nhi khelunga.")
+        await message.reply_text("Invalid puzzle format.")
 
 def run():
     server.run(host="0.0.0.0", port=int(os.environ.get('PORT', 8080)))
