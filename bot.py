@@ -1,18 +1,25 @@
-import asyncio
 import re
 import os
+import asyncio
 from pyrogram import Client, filters
 from threading import Thread
 from flask import Flask
+from pymongo import MongoClient
 
 # Retrieve API credentials from environment variables
 API_ID = os.environ.get("API_ID")
 API_HASH = os.environ.get("API_HASH")
-SESSION_STRING = os.environ.get("BOT_TOKEN")  # Using session string for userbot
+SESSION_STRING = os.environ.get("SESSION_STRING")  # Using session string for userbot
+MONGO_URI = os.environ.get("MONGO_URI")  # MongoDB connection URI
 
 # Initialize the Pyrogram client as a user bot
 app = Client("word9", api_id=API_ID, api_hash=API_HASH, session_string=SESSION_STRING)
 server = Flask(__name__)
+
+# MongoDB setup
+client = MongoClient(MONGO_URI)
+db = client["word_game_db"]
+blacklist_collection = db["blacklist"]
 
 @server.route("/")
 def home():
@@ -29,8 +36,15 @@ specific_bot_id = 7090700350  # Bot user ID to track accepted words
 
 # Dictionary to keep track of used words per group
 used_words_dict = {}
-# Set to keep track of blacklisted words
-blacklist = set()
+
+# Function to check if a word is blacklisted
+def is_word_blacklisted(word):
+    return blacklist_collection.find_one({"word": word}) is not None
+
+# Function to add a word to the blacklist
+def add_word_to_blacklist(word):
+    if not is_word_blacklisted(word):
+        blacklist_collection.insert_one({"word": word})
 
 # Define the user ID and the message patterns to trigger specific actions
 user_id_to_watch = 6257270528
@@ -111,7 +125,7 @@ async def handle_incoming_message(client, message):
 
         while True:
             # Filter valid words based on criteria and excluding blacklisted and used words
-            valid_words = [word for word in words if word.startswith(starting_letter) and len(word) >= min_length and word not in blacklist and word not in used_words_dict[chat_id]]
+            valid_words = [word for word in words if word.startswith(starting_letter) and len(word) >= min_length and not is_word_blacklisted(word) and word not in used_words_dict[chat_id]]
 
             if valid_words:
                 # Find the smallest word
@@ -121,8 +135,10 @@ async def handle_incoming_message(client, message):
                 if selected_word in used_words_dict[chat_id]:
                     continue
                 else:
+                    # Wait for 3 seconds before sending the selected word
+                    await asyncio.sleep(1.5)
+                    
                     # Send the selected word
-                    await asyncio.sleep(3)
                     await message.reply_text(f"{selected_word}")
 
                     # Add the selected word to the used words list
