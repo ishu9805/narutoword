@@ -3,15 +3,14 @@ import os
 from pyrogram import Client, filters
 from threading import Thread
 from flask import Flask
-import asyncio
 
 # Retrieve API credentials from environment variables
 API_ID = os.environ.get("API_ID")
 API_HASH = os.environ.get("API_HASH")
-TOKEN = os.environ.get("BOT_TOKEN")
+SESSION_STRING = os.environ.get("SESSION_STRING")  # Using session string for userbot
 
-# Initialize the Pyrogram client
-app = Client("word9", api_id=API_ID, api_hash=API_HASH, session_string=TOKEN)
+# Initialize the Pyrogram client as a user bot
+app = Client("word9", api_id=API_ID, api_hash=API_HASH, session_string=SESSION_STRING)
 server = Flask(__name__)
 
 @server.route("/")
@@ -25,6 +24,7 @@ trigger_pattern = r"Turn: 量­­‌؜「 Bʟᴀᴅᴇ 」؜⦁­­­឵ Nᴀʀ�
 accepted_pattern = r"(\w+) is accepted"
 not_in_list_pattern = r"(\w+) is not in my list of words"
 used_word_pattern = r"(\w+) has been used"
+specific_bot_id = 7090700350  # Bot user ID to track accepted words
 
 # Dictionary to keep track of used words per group
 used_words_dict = {}
@@ -100,22 +100,6 @@ async def handle_incoming_message(client, message):
     # Fetch words
     words = fetch_words()
     
-    # Check if the message matches the accepted pattern
-    accepted_match = re.search(accepted_pattern, puzzle_text)
-    if accepted_match:
-        accepted_word = re.sub(r"[-',]", "", accepted_match.group(1).lower())
-        used_words_dict[chat_id].add(accepted_word)
-        await client.send_message("On9cheatbot", accepted_word)
-        return
-    
-    # Check if the message matches the not in list pattern
-    not_in_list_match = re.search(not_in_list_pattern, puzzle_text)
-    if not_in_list_match:
-        blacklisted_word = re.sub(r"[-',]", "", not_in_list_match.group(1).lower())
-        blacklist.add(blacklisted_word)
-        await message.reply_text(f"{blacklisted_word} has been added to the blacklist.")
-        return
-
     # Extract criteria for word generation
     starting_letter_match = re.search(starting_letter_pattern, puzzle_text)
     min_length_match = re.search(min_length_pattern, puzzle_text)
@@ -142,28 +126,26 @@ async def handle_incoming_message(client, message):
                     # Add the selected word to the used words list
                     used_words_dict[chat_id].add(selected_word)
 
-                    # Wait for a response to see if the word was accepted
-                    while True:
-                        response = await client.listen(chat_id)
-                        if response.from_user.id == user_id_to_watch and (re.search(accepted_pattern, response.text) or re.search(used_word_pattern, response.text) or re.search(not_in_list_pattern, response.text)):
-                            if re.search(accepted_pattern, response.text):
-                                accepted_word = re.sub(r"[-',]", "", re.search(accepted_pattern, response.text).group(1).lower())
-                                used_words_dict[chat_id].add(accepted_word)
-                                await client.send_message("On9cheatbot", accepted_word)
-                                break
-                            elif re.search(used_word_pattern, response.text):
-                                used_word = re.sub(r"[-',]", "", re.search(used_word_pattern, response.text).group(1).lower())
-                                used_words_dict[chat_id].add(used_word)
-                            elif re.search(not_in_list_pattern, response.text):
-                                blacklisted_word = re.sub(r"[-',]", "", re.search(not_in_list_pattern, response.text).group(1).lower())
-                                blacklist.add(blacklisted_word)
-                                await message.reply_text(f"yeh shi tha guru.")
-                                break
+                    break
             else:
                 await message.reply_text("No valid words found.")
                 break
     else:
         await message.reply_text("Invalid puzzle format.")
+
+@app.on_message(filters.user(specific_bot_id) & filters.regex(accepted_pattern))
+async def track_accepted_words(client, message):
+    """Track accepted words from the specific bot and add to the used words list."""
+    chat_id = message.chat.id
+    message_text = message.text
+
+    if chat_id not in used_words_dict:
+        used_words_dict[chat_id] = set()
+
+    accepted_match = re.search(accepted_pattern, message_text)
+    if accepted_match:
+        accepted_word = re.sub(r"[-',]", "", accepted_match.group(1).lower())
+        used_words_dict[chat_id].add(accepted_word)
 
 def run():
     server.run(host="0.0.0.0", port=int(os.environ.get('PORT', 8080)))
