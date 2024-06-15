@@ -9,7 +9,7 @@ from pymongo import MongoClient
 # Retrieve API credentials from environment variables
 API_ID = os.environ.get("API_ID")
 API_HASH = os.environ.get("API_HASH")
-SESSION_STRING = os.environ.get("SESSION_STRING")  # Using session string for userbot
+SESSION_STRING = os.environ.get("BOT_TOKEN")  # Using session string for userbot
 MONGO_URI = os.environ.get("MONGO_URI")  # MongoDB connection URI
 
 # Initialize the Pyrogram client as a user bot
