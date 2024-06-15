@@ -121,6 +121,7 @@ async def handle_incoming_message(client, message):
                     continue
                 else:
                     # Send the selected word
+                    await asyncio.sleep(3)
                     await message.reply_text(f"{selected_word}")
 
                     # Add the selected word to the used words list
