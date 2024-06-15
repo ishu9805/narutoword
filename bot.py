@@ -136,7 +136,7 @@ async def handle_incoming_message(client, message):
                     continue
                 else:
                     # Wait for 3 seconds before sending the selected word
-                    await asyncio.sleep(1.5)
+                    await asyncio.sleep(2)
                     
                     # Send the selected word
                     await message.reply_text(f"{selected_word}")
