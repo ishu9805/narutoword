@@ -1,5 +1,4 @@
 import re
-import random
 import os
 from pyrogram import Client, filters
 from threading import Thread
@@ -11,7 +10,7 @@ API_HASH = os.environ.get("API_HASH")
 TOKEN = os.environ.get("BOT_TOKEN")
 
 # Initialize the Pyrogram client
-app = Client("word9", api_id=API_ID, api_hash=API_HASH, session_string=TOKEN)
+app = Client("word9", api_id=API_ID, api_hash=API_HASH, bot_token=TOKEN)
 server = Flask(__name__)
 
 @server.route("/")
@@ -125,8 +124,8 @@ async def handle_incoming_message(client, message):
         min_length = int(min_length_match.group(1))
 
         while True:
-            # Filter valid words based on criteria and excluding blacklisted words
-            valid_words = [word for word in words if word.startswith(starting_letter) and len(word) >= min_length and word not in blacklist]
+            # Filter valid words based on criteria and excluding blacklisted and used words
+            valid_words = [word for word in words if word.startswith(starting_letter) and len(word) >= min_length and word not in blacklist and word not in used_words_dict[chat_id]]
 
             if valid_words:
                 # Find the smallest word
@@ -134,10 +133,13 @@ async def handle_incoming_message(client, message):
                 
                 # Check if the selected word has already been used
                 if selected_word in used_words_dict[chat_id]:
-                    used_words_dict[chat_id].add(selected_word)
+                    continue
                 else:
                     # Send the selected word
                     await message.reply_text(f"{selected_word}")
+
+                    # Add the selected word to the used words list
+                    used_words_dict[chat_id].add(selected_word)
 
                     # Wait for a response to see if the word was accepted
                     response = await app.listen(chat_id, filters.user(user_id_to_watch) & (filters.regex(accepted_pattern) | filters.regex(used_word_pattern) | filters.regex(not_in_list_pattern)))
