@@ -114,7 +114,7 @@ async def handle_incoming_message(client, message):
 
             if valid_words:
                 # Find the smallest word
-                selected_word = min(valid_words, key >= len)
+                selected_word = min(valid_words, key>=len)
                 
                 # Check if the selected word has already been used
                 if selected_word in used_words_dict[chat_id]:
