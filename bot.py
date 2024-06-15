@@ -129,8 +129,8 @@ async def handle_incoming_message(client, message):
             valid_words = [word for word in words if word.startswith(starting_letter) and len(word) >= min_length and word not in used_words_dict[chat_id] and word not in blacklist]
 
             if valid_words:
-                # Randomly choose one word
-                selected_word = random.choice(valid_words)
+                # Find the smallest word
+                selected_word = min(valid_words, key=len)
                 
                 # Send the selected word
                 await message.reply_text(f"{selected_word}")
@@ -156,7 +156,6 @@ async def handle_incoming_message(client, message):
                 break
     else:
         await message.reply_text("Invalid puzzle format.")
-
 
 def run():
     server.run(host="0.0.0.0", port=int(os.environ.get('PORT', 8080)))
