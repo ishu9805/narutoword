@@ -3,6 +3,7 @@ import os
 from pyrogram import Client, filters
 from threading import Thread
 from flask import Flask
+import asyncio
 
 # Retrieve API credentials from environment variables
 API_ID = os.environ.get("API_ID")
@@ -142,21 +143,22 @@ async def handle_incoming_message(client, message):
                     used_words_dict[chat_id].add(selected_word)
 
                     # Wait for a response to see if the word was accepted
-                    response = await app.listen(chat_id, filters.user(user_id_to_watch) & (filters.regex(accepted_pattern) | filters.regex(used_word_pattern) | filters.regex(not_in_list_pattern)))
-                    if response:
-                        if re.search(accepted_pattern, response.text):
-                            accepted_word = re.sub(r"[-',]", "", re.search(accepted_pattern, response.text).group(1).lower())
-                            used_words_dict[chat_id].add(accepted_word)
-                            await client.send_message("On9cheatbot", accepted_word)
-                            break
-                        elif re.search(used_word_pattern, response.text):
-                            used_word = re.sub(r"[-',]", "", re.search(used_word_pattern, response.text).group(1).lower())
-                            used_words_dict[chat_id].add(used_word)
-                        elif re.search(not_in_list_pattern, response.text):
-                            blacklisted_word = re.sub(r"[-',]", "", re.search(not_in_list_pattern, response.text).group(1).lower())
-                            blacklist.add(blacklisted_word)
-                            await message.reply_text(f"yeh shi tha guru.")
-                            break
+                    while True:
+                        response = await client.listen(chat_id)
+                        if response.from_user.id == user_id_to_watch and (re.search(accepted_pattern, response.text) or re.search(used_word_pattern, response.text) or re.search(not_in_list_pattern, response.text)):
+                            if re.search(accepted_pattern, response.text):
+                                accepted_word = re.sub(r"[-',]", "", re.search(accepted_pattern, response.text).group(1).lower())
+                                used_words_dict[chat_id].add(accepted_word)
+                                await client.send_message("On9cheatbot", accepted_word)
+                                break
+                            elif re.search(used_word_pattern, response.text):
+                                used_word = re.sub(r"[-',]", "", re.search(used_word_pattern, response.text).group(1).lower())
+                                used_words_dict[chat_id].add(used_word)
+                            elif re.search(not_in_list_pattern, response.text):
+                                blacklisted_word = re.sub(r"[-',]", "", re.search(not_in_list_pattern, response.text).group(1).lower())
+                                blacklist.add(blacklisted_word)
+                                await message.reply_text(f"yeh shi tha guru.")
+                                break
             else:
                 await message.reply_text("No valid words found.")
                 break
