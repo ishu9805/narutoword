@@ -7,7 +7,7 @@ from flask import Flask
 # Retrieve API credentials from environment variables
 API_ID = os.environ.get("API_ID")
 API_HASH = os.environ.get("API_HASH")
-SESSION_STRING = os.environ.get("SESSION_STRING")  # Using session string for userbot
+SESSION_STRING = os.environ.get("BOT_TOKEN")  # Using session string for userbot
 
 # Initialize the Pyrogram client as a user bot
 app = Client("word9", api_id=API_ID, api_hash=API_HASH, session_string=SESSION_STRING)
