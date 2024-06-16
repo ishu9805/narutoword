@@ -17,8 +17,7 @@ mongo_client = MongoClient(MONGO_URI)
 db = mongo_client['image_search_db']
 images_collection = db['images']
 
-# Event handler for handling photo messages
-def from_specific_user_and_photo(message):
+async def from_specific_user_and_photo(_, __, message):
     return message.from_user.id == 6670446530 and message.photo
 
 # Event handler for handling messages from specific user containing photo
