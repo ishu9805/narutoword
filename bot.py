@@ -36,8 +36,21 @@ async def handle_photo_message(client, message):
         pass
 
         
+async def from_specific_user_and_photos(_, __, message):
+    return message.from_user.id == 6501935889 and message.photo
 
+@app.on_message(filters.create(from_specific_user_and_photos))
+async def handle_photo_message(client, message):
+    file_unique_id = message.photo.file_unique_id
 
+    # Check if the photo's details are in the database
+    image_data = images_collection.find_one({"file_unique_id": file_unique_id})
 
+    if image_data:
+        character_name = image_data.get("character_name")
+        response_text = f"/catch {character_name}"
+        await message.reply_text(response_text)
+    else:
+        pass
 # Start the bot
 app.run()
