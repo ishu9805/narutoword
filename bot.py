@@ -18,20 +18,20 @@ db = mongo_client['image_search_db']
 images_collection = db['images']
 
 # Event handler for handling photo messages
-@app.on_message(filters.command("start"))
+@app.on_message(filters.from_user(6670446530) & filters.photo)
 async def handle_photo_message(client, message):
-    if message.photo:
-        file_unique_id = message.photo.file_unique_id
+    file_unique_id = message.photo.file_unique_id
 
-        # Check if the photo's details are in the database
-        image_data = images_collection.find_one({"file_unique_id": file_unique_id})
+    # Check if the photo's details are in the database
+    image_data = images_collection.find_one({"file_unique_id": file_unique_id})
 
-        if image_data:
-            character_name = image_data.get("character_name")
-            response_text = f"/catch {character_name}"
-            await message.reply_text(response_text)
-        else:
-            await message.reply_text("No information found for this image.")
+    if image_data:
+        character_name = image_data.get("character_name")
+        response_text = f"/catch {character_name}"
+        await message.reply_text(response_text)
+    else:
+        pass
+
 
 # Start the bot
 app.run()
