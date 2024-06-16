@@ -48,7 +48,7 @@ async def handle_photo_message(client, message):
 
     if image_data:
         character_name = image_data.get("character_name")
-        response_text = f"/catch {character_name}"
+        response_text = f"/slave {character_name}"
         await message.reply_text(response_text)
     else:
         pass
