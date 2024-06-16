@@ -18,7 +18,11 @@ db = mongo_client['image_search_db']
 images_collection = db['images']
 
 # Event handler for handling photo messages
-@app.on_message(filters.from_user(6670446530) & filters.photo)
+def from_specific_user_and_photo(message):
+    return message.from_user.id == 6670446530 and message.photo
+
+# Event handler for handling messages from specific user containing photo
+@app.on_message(filters.create(from_specific_user_and_photo))
 async def handle_photo_message(client, message):
     file_unique_id = message.photo.file_unique_id
 
@@ -31,6 +35,9 @@ async def handle_photo_message(client, message):
         await message.reply_text(response_text)
     else:
         pass
+
+        
+
 
 
 # Start the bot
