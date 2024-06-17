@@ -6,7 +6,7 @@ from pymongo import MongoClient
 # Environment variables
 MONGO_URI = "mongodb+srv://naruto:hinatababy@cluster0.rqyiyzx.mongodb.net/"
 GROUP_ID = -1002212863321  # Target group ID
-
+DOWNLOAD_DIR = "downloads"  
 # Initialize Pyrogram Client
 api_id = 26692918
 api_hash = '2b239375e141e882a33b59820ce827be'
