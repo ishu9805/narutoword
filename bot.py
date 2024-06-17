@@ -3,6 +3,7 @@ import os
 from pyrogram import Client, filters
 from pymongo import MongoClient
 import re
+import time
 # Environment variables
 
 
@@ -103,6 +104,8 @@ def handle_hexamon_image(client, message):
     caption = f"Character Name: {character_name}\nAnime Name: {anime_name}"
     client.send_photo(chat_id=HEXAMON, photo=message.photo.file_id, caption=caption)
     latest_character_name = None  # Reset after use
+    time.sleep(2)  # Wait for 3 seconds
+    client.send_message(chat_id=HEXAMON, text="/guess")
 
 app.run()
 
