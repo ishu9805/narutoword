@@ -80,10 +80,10 @@ def handle_text_message(client, message):
     """Handle text messages in HEXAMON chat to extract character name or delete command."""
     global latest_character_name, waiting_for_character_name
     
-    if message.text.startswith('/delete'):
+    if message.from_user.id == 6257270528 and message.text.lower() == "!reset":
         latest_character_name = None
         waiting_for_character_name = False
-        message.reply_text("Deleted the latest character name.")
+        message.reply_text("Reset the latest character name.")
         return
     
     match = re.search(r'The pokemon was (\w+)', message.text)
