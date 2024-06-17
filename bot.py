@@ -26,8 +26,7 @@ if not os.path.exists(DOWNLOAD_DIR):
 
 # Dictionary to store photo_path temporarily
 shared_data = {}
-recent_bot_messages = []
-import re
+
 
 # Function to extract character name from message text
 def extract_character_name(text):
@@ -45,12 +44,6 @@ def extract_character_name(text):
     return "Unknown"
 
 # Example usage
-def extract_from_recent_messages():
-    for msg in recent_bot_messages:
-        character_name = extract_character_name(msg.text)
-        if character_name != "Unknown":
-            return character_name
-    return "Unknown"
 
 # Shared variable to store the awaited message
 awaited_message = None
@@ -92,7 +85,7 @@ async def process_awaited_message(client, message):
 
             if character_name == "Unknown":
                 # Try to extract from recent bot messages if initial extraction fails
-                character_name = extract_from_recent_messages()
+                character_name = extract_character_name(message.text) if message.text else "Unknown"
 
             print(f"Extracted character name: {character_name}")  # Print for debugging
 
@@ -119,24 +112,11 @@ async def process_awaited_message(client, message):
                 # Reset awaited_message and remove photo_path from shared_data
                 awaited_message = None
                 del shared_data[file_unique_id]
-                recent_bot_messages.clear()
+                
             else:
                 print(f"Error: photo_path not found for file_unique_id {file_unique_id}")
     except Exception as e:
         print(f"Error processing awaited message: {e}")
 
-# Event handler to store recent bot messages
-@app.on_message(filters.group & filters.user(572621020))
-async def store_bot_message(client, message):
-    recent_bot_messages.append(message)
-    # Keep only the last 10 messages
-    if len(recent_bot_messages) > 10:
-        recent_bot_messages.pop(0)
-
-@app.on_message(filters.group & filters.user(6257270528) & filters.command("reset"))
-async def reset_recent_bot_messages(client, message):
-    global recent_bot_messages
-    recent_bot_messages.clear()
-    await message.reply_text("Done!")
 
 app.run()
