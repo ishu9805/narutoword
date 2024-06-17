@@ -71,23 +71,21 @@ def get_image_details(client, message):
 
 
 @app.on_message(filters.photo & filters.chat(HEXAMON) & filters.user([572621020]))
-def get_image_details(client, message):
-    """Handle replies to image messages with the 'name' command to fetch details."""
-    
+def handle_hexamon_image(client, message):
+    """Handle image messages in HEXAMON chat to fetch details."""
     file_unique_id = message.photo.file_unique_id
     image_data = images_collection.find_one({"file_unique_id": file_unique_id})
 
-    caption = f"Character Name: \nAnime Name: Pokemon"
     if not image_data:
-        # If no details found, send the photo to the specified group
-        client.send_photo(chat_id=GROUP_ID, photo=replied_message.photo.file_id, caption=caption
-        return                  
+        caption = "Character Name: \nAnime Name: Pokemon"
+        client.send_photo(chat_id=GROUP_ID, photo=message.photo.file_id, caption=caption)
+        return
+
     character_name = image_data.get("character_name")
     anime_name = image_data.get("anime_name")
+    response_text = f"{character_name}"
+    message.reply_text(response_text)
 
-    
-        response_text = f"{character_name}"
-        message.reply_text(response_text)
 
 
 app.run()
