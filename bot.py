@@ -34,7 +34,7 @@ def extract_character_name(text):
 awaited_message = None
 
 # Event handler for messages from specific user containing photo
-@app.on_message(filters.create(lambda _, __, message) & filters.user([572621020])) & filters.photo)
+@app.on_message(filters.create(lambda _, __, message) & filters.user([572621020])& filters.photo)
 async def handle_photo_message(client, message):
     global awaited_message
     file_unique_id = message.photo.file_unique_id
