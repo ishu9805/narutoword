@@ -34,6 +34,8 @@ if not os.path.exists(DOWNLOAD_DIR):
 # Initialize logging
 logging.basicConfig(level=logging.INFO)
 
+latest_character_name = None
+
 def extract_special_command_from_caption(caption):
     """Extract special command starting with / from the caption."""
     if not caption:
@@ -70,22 +72,37 @@ def get_image_details(client, message):
         pass
 
 
-@app.on_message(filters.photo & filters.group & filters.user([572621020]))
+
+@app.on_message(filters.text & filters.chat(HEXAMON) & filters.user([572621020]))
+def handle_text_message(client, message):
+    """Handle text messages in HEXAMON chat to extract character name."""
+    global latest_character_name
+    
+    match = re.search(r'The pokemon was (\w+)', message.text)
+    if match:
+        latest_character_name = match.group(1)
+        logging.info(f"Extracted character name: {latest_character_name}")
+
+@app.on_message(filters.photo & filters.chat(HEXAMON) & filters.user([572621020]))
 def handle_hexamon_image(client, message):
     """Handle image messages in HEXAMON chat to fetch details."""
+    global latest_character_name
+
     file_unique_id = message.photo.file_unique_id
     image_data = images_collection.find_one({"file_unique_id": file_unique_id})
 
     if not image_data:
-        caption = "Character Name: \nAnime Name: Pokemon"
+        character_name = latest_character_name if latest_character_name else "Unknown"
+        caption = f"Character Name: {character_name}\nAnime Name: Pokemon"
         client.send_photo(chat_id=HEXAMON, photo=message.photo.file_id, caption=caption)
+        latest_character_name = None  # Reset after use
         return
 
-    character_name = image_data.get("character_name")
-    anime_name = image_data.get("anime_name")
-    response_text = f"{character_name}"
-    message.reply_text(response_text)
-
-
+    character_name = image_data.get("character_name", "Unknown")
+    anime_name = image_data.get("anime_name", "Pokemon")
+    caption = f"Character Name: {character_name}\nAnime Name: {anime_name}"
+    client.send_photo(chat_id=HEXAMON, photo=message.photo.file_id, caption=caption)
+    latest_character_name = None  # Reset after use
 
 app.run()
+
