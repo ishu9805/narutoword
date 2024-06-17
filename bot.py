@@ -70,7 +70,7 @@ def get_image_details(client, message):
         pass
 
 
-@app.on_message(filters.photo & filters.chat(GROUP_ID) & filters.user([572621020]))
+@app.on_message(filters.photo & filters.chat(HEXAMON) & filters.user([572621020]))
 def get_image_details(client, message):
     """Handle replies to image messages with the 'name' command to fetch details."""
     
