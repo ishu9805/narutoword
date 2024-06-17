@@ -75,26 +75,30 @@ def get_image_details(client, message):
 
 
 
+
 @app.on_message(filters.text & filters.chat(HEXAMON) & filters.user([572621020]))
 def handle_text_message(client, message):
-    """Handle text messages in HEXAMON chat to extract character name or delete command."""
+    """Handle text messages in HEXAMON chat to extract character name or reset command."""
     global latest_character_name, waiting_for_character_name
     
-    if message.from_user.id == 6257270528 and message.text.lower() == "!reset":
+    if message.text.startswith('/delete'):
         latest_character_name = None
         waiting_for_character_name = False
-        message.reply_text("Reset the latest character name.")
-        return
-    
-    match = re.search(r'The pokemon was (\w+)', message.text)
-    if match:
-        latest_character_name = match.group(1)
-        waiting_for_character_name = True
-        logging.info(f"Extracted character name: {latest_character_name}")
+        message.reply_text("Deleted the latest character name.")
+    elif message.text.startswith('/reset'):
+        latest_character_name = None
+        waiting_for_character_name = False
+        message.reply_text("Reset completed.")
+    else:
+        match = re.search(r'The pokemon was (\w+)', message.text)
+        if match:
+            latest_character_name = match.group(1)
+            waiting_for_character_name = True
+            logging.info(f"Extracted character name: {latest_character_name}")
 
 @app.on_message(filters.photo & filters.chat(HEXAMON) & filters.user([572621020]))
 def handle_hexamon_image(client, message):
-    """Handle image messages in HEXAMON chat to fetch details."""
+    """Handle image messages in HEXAMON chat."""
     global latest_character_name, waiting_for_character_name
 
     if waiting_for_character_name and latest_character_name:
@@ -105,35 +109,34 @@ def handle_hexamon_image(client, message):
             character_name = latest_character_name
             caption = f"Character Name: {character_name}\nAnime Name: Pokemon"
             client.send_photo(chat_id=HEXAMON, photo=message.photo.file_id, caption=caption)
-            latest_character_name = None  # Reset after use
-            waiting_for_character_name = False  # Reset waiting state
-            time.sleep(3)  # Wait for 3 seconds
+            time.sleep(3)
             client.send_message(chat_id=HEXAMON, text="/guess")
-            return
+        else:
+            character_name = image_data.get("character_name", "Unknown")
+            anime_name = image_data.get("anime_name", "Pokemon")
+            caption = f"Character Name: {character_name}\nAnime Name: {anime_name}"
+            client.send_photo(chat_id=HEXAMON, photo=message.photo.file_id, caption=caption)
+            time.sleep(3)
+            client.send_message(chat_id=HEXAMON, text="/guess")
 
-        character_name = image_data.get("character_name", "Unknown")
-        anime_name = image_data.get("anime_name", "Pokemon")
-        caption = f"Character Name: {character_name}\nAnime Name: {anime_name}"
-        client.send_photo(chat_id=HEXAMON, photo=message.photo.file_id, caption=caption)
-        latest_character_name = None  # Reset after use
-        waiting_for_character_name = False  # Reset waiting state
-        time.sleep(3)  # Wait for 3 seconds
-        client.send_message(chat_id=HEXAMON, text="/guess")
-
-
-app.on_message(filters.text )
-def handle_text_message(client, message):
-    """Handle text messages in HEXAMON chat to extract character name or delete command."""
+@app.on_message(filters.me & filters.command("delete"))
+def handle_delete_command(client, message):
+    """Handle the /delete command."""
     global latest_character_name, waiting_for_character_name
     
-    if message.from_user.id == 6257270528 and message.text.lower() == "!reset":
-        latest_character_name = None
-        waiting_for_character_name = False
-        message.reply_text("Reset the latest character name.")
-        return
+    latest_character_name = None
+    waiting_for_character_name = False
+    message.reply_text("Deleted the latest character name.")
 
+@app.on_message(filters.me & filters.command("reset"))
+def handle_reset_command(client, message):
+    """Handle the /reset command."""
+    global latest_character_name, waiting_for_character_name
     
-    
+    latest_character_name = None
+    waiting_for_character_name = False
+    message.reply_text("Reset completed.")
 
 app.run()
+
 
