@@ -20,7 +20,7 @@ GROUP_ID = -1002040871088 # Target group ID
 DOWNLOAD_DIR = "downloads"
 GROUP_ID2 = [-1002243288784, -1002029788751]
 # Initialize Pyrogram Client
-
+HEXAMON = -1002189762536
 # Connect to MongoDB
 mongo_client = MongoClient(MONGO_URI)
 db = mongo_client['image_search_db']
@@ -47,7 +47,7 @@ def extract_special_command_from_caption(caption):
     return None
 
 
-@app.on_message(filters.photo & filters.chat(GROUP_ID) & filters.user([6763528462, 6883098627, 6501935889, 7107840748, 6670446530, 6942284208, 6501935889]))
+@app.on_message(filters.photo & filters.private & filters.user([6763528462, 6883098627, 6501935889, 7107840748, 6670446530, 6942284208, 6501935889]))
 def get_image_details(client, message):
     """Handle replies to image messages with the 'name' command to fetch details."""
     
