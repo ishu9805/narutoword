@@ -1,69 +1,72 @@
-import asyncio
+import logging
 import os
-import zipfile
 from pyrogram import Client, filters
-from pyrogram.types import InlineQueryResultPhoto
+from pymongo import MongoClient
+import re
+# Environment variables
 
-# Set up your Telegram API credentials
+
+# Initialize Pyrogram Client
 api_id = 26692918
-api_hash = "2b239375e141e882a33b59820ce827be"
-bot_token = "7461505284:AAFsqEwWww1GZakSa9oLyalchIY03PTLQu8"
+api_hash = '2b239375e141e882a33b59820ce827be'
+bot_token = 'BQE--bQAjqHoV0hhvb27cizIgWfl0kHrwKwmGGHyZCP8D65FYLSLm993AOCg5G-xuoCHWPv32qaZfndeeKKo62IpOQc1Wv7Xj7ga2DAYq94D05JdL5pwk5plwdCXQdcBIFFlPIIigEN3ky57nJq_8k6d9qWQSC0m5NqX5gIEbMUfKzspp27zqdXy1WAr_D-Ykxi27CEWAEI9YHqWQe9Ox2OLIbuIzAM6Gzampsub4JisFCxewwE1BUA7COgc4Vvf6zV98AYKd167UPqVhwZEuAF2DJUbNDTw_NFEksUh5Y5oCdRtv4axpdJFpdZ0cocfl-zNkKLDt9oVfQA1Brh9oIzZhBgIkAAAAAF09l8AAA'
+bot_token2 = 'BQFRgCwAJjP_Bvo9srkCxtBaXeiDfaQPGjdsjBl321WXSwm6ixT2LiAlualCOFMpS4VYN-Ibb2foJhsckyTE0HE0q-R95km4dzT6qysStD35dNMxhYrE416LlhW4NWrpohqRRyYR9XkZGd2445ocaw-ybUusLoaMdMfj01uNZSA0DlnBgb9vyiX_sh6zbZPvlznnJkDT4EhyTwfyLx7Kg4_c2d5WOe7f_JXkazqaamPUmq8E7RoU4U2pe0SwsfLZCkf9qf497pdfuhLqrE_WEk3YsyB7SEca6laku5wpcOo63BcAclnpWGd5t-Kt8-pZTXG5wzQt3UFJ32pqkZmOmYZGg_mVEgAAAAGnyL7yAA'
+app = Client("my_bot", api_id=api_id, api_hash=api_hash, session_string=bot_token2)
 
-# Create a Pyrogram Client
-app = Client("my_bot", api_id=api_id, api_hash=api_hash, bot_token=bot_token)
 
+# Environment variables
+MONGO_URI = os.getenv("MONGO_URI")
+GROUP_ID = -1002040871088 # Target group ID
+DOWNLOAD_DIR = "downloads"
 
-@app.on_message(filters.command("start"))
-def start_message(client, message):
-    client.send_message(message.chat.id, "Bot is started")
+# Initialize Pyrogram Client
+
+# Connect to MongoDB
+mongo_client = MongoClient(MONGO_URI)
+db = mongo_client['image_search_db']
+images_collection = db['images']
+pokemon_collection = db['poki']
+
+# Create download directory if it doesn't exist
+if not os.path.exists(DOWNLOAD_DIR):
+    os.makedirs(DOWNLOAD_DIR)
+
+# Initialize logging
+logging.basicConfig(level=logging.INFO)
+
+def extract_special_command_from_caption(caption):
+    """Extract special command starting with / from the caption."""
+    if not caption:
+        return None
     
-# Define a handler for inline queries
-@app.on_inline_query()
-async def inline_query_handler(client, inline_query):
-    query = inline_query.query
-    if not query:
-        await inline_query.answer(results=[], cache_time=1)
+    words = caption.split()
+    for word in words:
+        if word.startswith('/'):
+            return word.lower()  # Return the command in lowercase
+    
+    return None
+
+@app.on_message(filters.photo & filters.chat(GROUP_ID) & filters.user([6763528462, 6883098627, 6501935889, 7107840748, 6670446530, 6942284208, 6501935889]))
+def get_image_details(client, message):
+    """Handle replies to image messages with the 'name' command to fetch details."""
+    
+    file_unique_id = message.photo.file_unique_id
+    image_data = images_collection.find_one({"file_unique_id": file_unique_id})
+
+    if not image_data:
+        logging.info("Image data not found in the database.")
         return
 
-    # Example of querying another bot's inline results
-    # Replace "OTHER_BOT_USERNAME" with the username of the bot you want to query
-    other_bot_username = "Catch_Your_WH_Group"
-    results = await client.get_inline_bot_results(other_bot_username, query)
+    character_name = image_data.get("character_name")
+    anime_name = image_data.get("anime_name")
 
-    # Filter out image results and collect their metadata
-    image_results = []
-    for result in results.results:
-        if isinstance(result, InlineQueryResultPhoto):
-            image_results.append(result)
+    command = extract_special_command_from_caption(message.caption) if message.caption else None
 
-    # Prepare a zip file to store image metadata
-    zip_file = 'bot.zip'
-    with zipfile.ZipFile(zip_file, 'w') as zip_ref:
-        for image in image_results:
-            metadata_text = f"Image URL: {image.photo.url}\n"
-            metadata_text += f"Thumb URL: {image.thumb_url}\n"
-            metadata_text += f"Description: {image.description}\n"
-            metadata_text += f"Title: {image.title}\n\n"
+    if command:
+        response_text = f"{command} {character_name}"
+        message.reply_text(response_text)
+    else:
+        message.reply_text(f"/guess {character_name}")
 
-            # Write metadata to a temporary text file
-            temp_file = f"{image.photo.file_id}.txt"
-            with open(temp_file, 'w', encoding='utf-8') as temp:
-                temp.write(metadata_text)
 
-            # Add the temporary text file to the zip archive
-            zip_ref.write(temp_file)
-            
-            # Remove the temporary text file after adding it to zip
-            os.remove(temp_file)
-
-    # Respond to the inline query with the zip file containing metadata files
-    await inline_query.answer(
-        results=[],
-        cache_time=1,
-        is_personal=True,
-        switch_pm_text="Check your zip file",
-        switch_pm_parameter="inline_query"
-    )
-
-# Start the bot
 app.run()
