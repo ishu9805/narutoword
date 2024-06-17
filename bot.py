@@ -16,7 +16,7 @@ app = Client("my_bot", api_id=api_id, api_hash=api_hash, session_string=bot_toke
 
 # Environment variables
 MONGO_URI = os.getenv("MONGO_URI")
-GROUP_ID = -1002189762536  # Target group ID
+GROUP_ID = -1002040871088 # Target group ID
 DOWNLOAD_DIR = "downloads"
 
 # Initialize Pyrogram Client
