@@ -18,7 +18,7 @@ app = Client("my_bot", api_id=api_id, api_hash=api_hash, session_string=bot_toke
 MONGO_URI = os.getenv("MONGO_URI")
 GROUP_ID = -1002040871088 # Target group ID
 DOWNLOAD_DIR = "downloads"
-
+GROUP_ID = [-1002243288784, -1002029788751]
 # Initialize Pyrogram Client
 
 # Connect to MongoDB
