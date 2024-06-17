@@ -27,18 +27,19 @@ if not os.path.exists(DOWNLOAD_DIR):
 # Dictionary to store photo_path temporarily
 shared_data = {}
 
-def extract_character_name(text):
-    if "The pokemon was" in text:
-        # Split by "The pokemon was" and take the second part
-        character_name_part = text.split("The pokemon was")[1].strip()
-        
-        # Remove any additional characters that are not part of the name
-        # Specifically, remove any characters after the first dot or other non-alphabetical character.
-        cleaned_character_name = re.sub(r'[^\w\s]', '', character_name_part)
-        
-        return cleaned_character_name.strip()  # Return the cleaned character name
+import re
 
-    return None  
+# Function to extract character name from message text
+def extract_character_name(text):
+    match = re.search(r'The pokemon was ([\w\s]+)\.', text)
+    if match:
+        return match.group(1).strip()
+    return None
+
+# Example usage
+text_example = "〨 Mᴇᴅᴜsᴀ 𝖰؜ᴜᴇᴇɴ ⌯؜ Ꮓx guessed in 53.22s\nThe pokemon was Clobbopus. +5 💵"
+print(extract_character_name(text_example))  # Should print "Clobbopus"
+
 
 
 # Shared variable to store the awaited message
