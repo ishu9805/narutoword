@@ -5,7 +5,7 @@ from pymongo import MongoClient
 import re
 import time
 # Environment variables
-
+from collections import defaultdict
 
 # Initialize Pyrogram Client
 api_id = 26692918
