@@ -86,7 +86,7 @@ async def process_awaited_message(client, message):
             caption = f"Character Name: {character_name}\nAnime Name: Pokemon"
 
             # Send the photo to the specified group with the caption
-            await client.send_photo(GROUP_ID, photo=photo_path, caption=caption)
+            await client.send_photo(chat_id, photo=photo_path, caption=caption)
 
             # Clean up the downloaded photo
             os.remove(photo_path)
