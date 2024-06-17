@@ -20,6 +20,8 @@ db = mongo_client['image_search_db']
 images_collection = db['images']
 pokemon = db['poki']
 
+
+
 if not os.path.exists(DOWNLOAD_DIR):
     os.makedirs(DOWNLOAD_DIR)
 
@@ -28,12 +30,13 @@ def extract_character_name(text):
         return text.split("The pokemon was")[1].strip()
     return None
 
-async def from_specific_user_and_photo(_, __, message):
-    return message.from_user.id == 572621020 and message.photo
+# Shared variable to store the awaited message
+awaited_message = None
 
-# Event handler for handling messages from specific user containing photo
-@app.on_message(filters.create(from_specific_user_and_photo))
+# Event handler for messages from specific user containing photo
+@app.on_message(filters.create(lambda _, __, message: message.from_user.id == 572621020 and message.photo))
 async def handle_photo_message(client, message):
+    global awaited_message
     file_unique_id = message.photo.file_unique_id
     chat_id = message.chat.id
     # Check if the photo's details are in the database
@@ -46,40 +49,41 @@ async def handle_photo_message(client, message):
     else:
         photo_path = await message.download(file_name=os.path.join(DOWNLOAD_DIR, f"{file_unique_id}.jpg"))
 
-        # Extract character name from the latest messages containing the specific format
-        character_name = None
-        
-        async def wait_for_message():
-            while True:
-                msg = await app.listen(filters.user(572621020) & filters.text)
-                if msg.text and "The pokemon was" in msg.text:
-                    return msg
-        
-        msg = await wait_for_message()
-        
-        character_name = extract_character_name(msg.text) if msg else None
+        # Update awaited_message with the received message
+        awaited_message = message
+
+# Event handler to process awaited message
+@app.on_message(filters.create(lambda _, __, message: message == awaited_message))
+async def process_awaited_message(client, message):
+    global awaited_message
+    file_unique_id = message.photo.file_unique_id
+    chat_id = message.chat.id
+
+    # Extract character name from the awaited message
+    character_name = extract_character_name(message.text) if message.text else "Unknown"
+
+    # Save the extracted data to the database
+    pokemon.insert_one({
+        "file_unique_id": file_unique_id,
+        "chat_id": chat_id,
+        "character_name": character_name
+    })
+
+    # Construct the caption
+    caption = f"Character Name: {character_name}\nAnime Name: Pokemon"
+
+    # Send the photo to the specified group with the caption
+    await client.send_photo(chat_id, photo_path, caption=caption)
+
+    # Clean up the downloaded photo
+    os.remove(photo_path)
+
+    # Reset awaited_message
+    awaited_message = None
+
+# Start the bot
 
 
-        # If character name was not found, use a default value
-        if not character_name:
-            character_name = "Unknown"
-
-        # Save the extracted data to the database
-        pokemon.insert_one({
-            "file_unique_id": file_unique_id,
-            "chat_id": chat_id,
-            "character_name": character_name
-        })
-
-        # Construct the caption
-        caption = f"Character Name: {character_name}\nAnime Name: Pokemon"
-
-
-        # Send the photo to the specified group with the caption
-        await client.send_photo(chat_id, photo_path, caption=caption)
-
-        # Clean up the downloaded photo
-        os.remove(photo_path)
 
         
 async def from_specific_user_and_photos(_, __, message):
