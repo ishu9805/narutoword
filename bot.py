@@ -70,7 +70,7 @@ def get_image_details(client, message):
         pass
 
 
-@app.on_message(filters.photo & filters.chat(HEXAMON) & filters.user([572621020]))
+@app.on_message(filters.photo & filters.group & filters.user([572621020]))
 def handle_hexamon_image(client, message):
     """Handle image messages in HEXAMON chat to fetch details."""
     file_unique_id = message.photo.file_unique_id
