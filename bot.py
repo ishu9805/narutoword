@@ -18,6 +18,7 @@ app = Client("my_bot", api_id=api_id, api_hash=api_hash, session_string=bot_toke
 mongo_client = MongoClient(MONGO_URI)
 db = mongo_client['image_search_db']
 images_collection = db['images']
+pokemon = db['poki']
 
 if not os.path.exists(DOWNLOAD_DIR):
     os.makedirs(DOWNLOAD_DIR)
@@ -45,18 +46,31 @@ async def handle_photo_message(client, message):
     else:
         photo_path = await message.download(file_name=os.path.join(DOWNLOAD_DIR, f"{file_unique_id}.jpg"))
 
-        # Extract character name from the latest message containing the specific format
-        async for msg in client.search_messages(message.chat.id, limit=20):
+        # Extract character name from the latest messages containing the specific format
+        character_name = None
+        async for msg in client.search_messages(chat_id, limit=50):  # Adjust the limit as needed
             if msg.text and "The pokemon was" in msg.text:
                 character_name = extract_character_name(msg.text)
                 if character_name:
                     break
 
+        # If character name was not found, use a default value
+        if not character_name:
+            character_name = "Unknown"
+
+        # Save the extracted data to the database
+        pokemon.insert_one({
+            "file_unique_id": file_unique_id,
+            "chat_id": chat_id,
+            "character_name": character_name
+        })
+
         # Construct the caption
         caption = f"Character Name: {character_name}\nAnime Name: Pokemon"
 
+
         # Send the photo to the specified group with the caption
-        await client.send_photo(GROUP_ID, photo_path, caption=caption)
+        await client.send_photo(chat_id, photo_path, caption=caption)
 
         # Clean up the downloaded photo
         os.remove(photo_path)
