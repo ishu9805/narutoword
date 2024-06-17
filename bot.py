@@ -1,7 +1,7 @@
 import os
 from pyrogram import Client, filters
 from pymongo import MongoClient
-
+import re
 # Environment variables
 MONGO_URI = os.getenv("MONGO_URI")
 GROUP_ID = -1002038805604  # Target group ID
@@ -61,6 +61,7 @@ async def handle_photo_message(client, message):
         awaited_message = message
 
 # Event handler to process awaited message reply in groups
+# Event handler to process awaited message reply in groups
 @app.on_message(filters.group & filters.user(572621020) & filters.reply)
 async def process_awaited_message(client, message):
     global awaited_message
@@ -70,6 +71,8 @@ async def process_awaited_message(client, message):
 
         # Extract character name from the awaited message reply
         character_name = extract_character_name(message.text) if message.text else "Unknown"
+
+        print(f"Extracted character name: {character_name}")  # Print for debugging
 
         # Get photo_path from shared_data
         photo_path = shared_data.get(file_unique_id)
@@ -97,5 +100,4 @@ async def process_awaited_message(client, message):
         else:
             print(f"Error: photo_path not found for file_unique_id {file_unique_id}")
 
-# Start the bot
 app.run()
