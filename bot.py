@@ -35,6 +35,7 @@ if not os.path.exists(DOWNLOAD_DIR):
 # Initialize logging
 logging.basicConfig(level=logging.INFO)
 
+pending_image_messages = defaultdict(list)
 latest_character_name = None
 waiting_for_character_name = False
 
@@ -76,10 +77,11 @@ def get_image_details(client, message):
 
 
 
+
 @app.on_message(filters.text & filters.chat(HEXAMON) & filters.user([572621020]))
 def handle_text_message(client, message):
     """Handle text messages in HEXAMON chat to extract character name or reset command."""
-    global latest_character_name, waiting_for_character_name
+    global latest_character_name, waiting_for_character_name, pending_image_messages
     
     if message.text.startswith('/delete'):
         latest_character_name = None
@@ -95,39 +97,29 @@ def handle_text_message(client, message):
             latest_character_name = match.group(1)
             waiting_for_character_name = True
             logging.info(f"Extracted character name: {latest_character_name}")
-
-@app.on_message(filters.photo & filters.chat(HEXAMON) & filters.user([572621020]))
-def handle_hexamon_image(client, message):
-    """Handle image messages in HEXAMON chat."""
-    global latest_character_name, waiting_for_character_name
-
-    if waiting_for_character_name and latest_character_name:
-        file_unique_id = message.photo.file_unique_id
-        image_data = images_collection.find_one({"file_unique_id": file_unique_id})
-
-        if not image_data:
-            character_name = latest_character_name
-            caption = f"Character Name: {character_name}\nAnime Name: Pokemon"
-            client.send_photo(chat_id=HEXAMON, photo=message.photo.file_id, caption=caption)
-            time.sleep(3)
-            client.send_message(chat_id=HEXAMON, text="/guess")
-        else:
-            character_name = image_data.get("character_name", "Unknown")
-            anime_name = image_data.get("anime_name", "Pokemon")
-            caption = f"Character Name: {character_name}\nAnime Name: {anime_name}"
-            client.send_photo(chat_id=HEXAMON, photo=message.photo.file_id, caption=caption)
-            time.sleep(3)
-            client.send_message(chat_id=HEXAMON, text="/guess")
-
-@app.on_message(filters.me & filters.command("delete"))
-def handle_delete_command(client, message):
-    """Handle the /delete command."""
-    global latest_character_name, waiting_for_character_name
-    
-    latest_character_name = None
-    waiting_for_character_name = False
-    message.reply_text("Deleted the latest character name.")
-
+            # Check for pending image messages
+            if message.chat.id in pending_image_messages and pending_image_messages[message.chat.id]:
+                # Process pending image messages
+                for image_message in pending_image_messages[message.chat.id]:
+                    file_unique_id = image_message.photo.file_unique_id
+                    image_data = images_collection.find_one({"file_unique_id": file_unique_id})
+                    
+                    if not image_data:
+                        character_name = latest_character_name
+                        caption = f"Character Name: {character_name}\nAnime Name: Pokemon"
+                        client.send_photo(chat_id=HEXAMON, photo=image_message.photo.file_id, caption=caption)
+                    else:
+                        character_name = image_data.get("character_name", "Unknown")
+                        anime_name = image_data.get("anime_name", "Pokemon")
+                        caption = f"Character Name: {character_name}\nAnime Name: {anime_name}"
+                        client.send_photo(chat_id=HEXAMON, photo=image_message.photo.file_id, caption=caption)
+                    
+                    time.sleep(3)
+                    client.send_message(chat_id=HEXAMON, text="/guess")
+                
+                # Clear pending image messages
+                del pending_image_messages[message.chat.id]
+                
 @app.on_message(filters.me & filters.command("reset"))
 def handle_reset_command(client, message):
     """Handle the /reset command."""
