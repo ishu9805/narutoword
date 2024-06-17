@@ -12,6 +12,11 @@ bot_token = "7461505284:AAFsqEwWww1GZakSa9oLyalchIY03PTLQu8"
 # Create a Pyrogram Client
 app = Client("my_bot", api_id=api_id, api_hash=api_hash, bot_token=bot_token)
 
+
+@app.on_message(filters.command("start"))
+def start_message(client, message):
+    client.send_message(message.chat.id, "Bot is started")
+    
 # Define a handler for inline queries
 @app.on_inline_query()
 async def inline_query_handler(client, inline_query):
