@@ -49,12 +49,8 @@ def extract_special_command_from_caption(caption):
 @app.on_message(filters.photo & filters.chat(GROUP_ID) & filters.user([7107840748, 6670446530]))
 def get_image_details(client, message):
     """Handle replies to image messages with the 'name' command to fetch details."""
-    replied_message = message.reply_to_message
-
-    if not replied_message or not replied_message.photo:
-        return
-
-    file_unique_id = replied_message.photo.file_unique_id
+    
+    file_unique_id = message.photo.file_unique_id
     image_data = images_collection.find_one({"file_unique_id": file_unique_id})
 
     if not image_data:
@@ -64,13 +60,13 @@ def get_image_details(client, message):
     character_name = image_data.get("character_name")
     anime_name = image_data.get("anime_name")
 
-    command = extract_special_command_from_caption(replied_message.caption) if replied_message.caption else None
+    command = extract_special_command_from_caption(message.caption) if message.caption else None
 
     if command:
         response_text = f"{command} {character_name}"
         message.reply_text(response_text)
     else:
-        message.reply_text(f"Character: {character_name}\nAnime: {anime_name}")
+        message.reply_text(f"/guess {character_name}")
 
 @app.on_message(filters.command("start") & filters.private)
 def start(client, message):
