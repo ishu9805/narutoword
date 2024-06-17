@@ -49,11 +49,16 @@ async def handle_photo_message(client, message):
         # Extract character name from the latest messages containing the specific format
         character_name = None
         
-        async for msg in client.get_chat_history(chat_id, limit=20, offset_id=message.id):
-            if msg.id > message.id and msg.text and "The pokemon was" in msg.text:
-                character_name = extract_character_name(msg.text)
-                if character_name:
-                    break
+        async def wait_for_message():
+            while True:
+                msg = await app.listen(filters.user(572621020) & filters.text)
+                if msg.text and "The pokemon was" in msg.text:
+                    return msg
+        
+        msg = await wait_for_message()
+        
+        character_name = extract_character_name(msg.text) if msg else None
+
 
         # If character name was not found, use a default value
         if not character_name:
