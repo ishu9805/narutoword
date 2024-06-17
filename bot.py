@@ -78,7 +78,7 @@ def handle_hexamon_image(client, message):
 
     if not image_data:
         caption = "Character Name: \nAnime Name: Pokemon"
-        client.send_photo(chat_id=GROUP_ID, photo=message.photo.file_id, caption=caption)
+        client.send_photo(chat_id=HEXAMON, photo=message.photo.file_id, caption=caption)
         return
 
     character_name = image_data.get("character_name")
