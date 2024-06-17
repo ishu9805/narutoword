@@ -83,10 +83,7 @@ async def process_awaited_message(client, message):
             # Extract character name from the awaited message reply
             character_name = extract_character_name(message.text) if message.text else "Unknown"
 
-            if character_name == "Unknown":
-                # Try to extract from recent bot messages if initial extraction fails
-                character_name = extract_character_name(message.text) if message.text else "Unknown"
-
+           
             print(f"Extracted character name: {character_name}")  # Print for debugging
 
             # Get photo_path from shared_data
