@@ -48,8 +48,8 @@ async def handle_photo_message(client, message):
 
         # Extract character name from the latest messages containing the specific format
         character_name = None
-        async for msg in client.search_messages(chat_id, limit=20):  # Adjust the limit as needed
-            if msg.text and "The pokemon was" in msg.text:
+        async for msg in client.iter_history(chat_id, limit=20):
+            if msg.message_id > message.message_id and msg.text and "The pokemon was" in msg.text:
                 character_name = extract_character_name(msg.text)
                 if character_name:
                     break
