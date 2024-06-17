@@ -26,21 +26,31 @@ if not os.path.exists(DOWNLOAD_DIR):
 
 # Dictionary to store photo_path temporarily
 shared_data = {}
-
+recent_bot_messages = []
 import re
 
 # Function to extract character name from message text
 def extract_character_name(text):
-    match = re.search(r'The pokemon was ([\w\s]+)\.', text)
-    if match:
-        return match.group(1).strip()
-    return None
+    patterns = [
+        r'The pokemon was ([\w\s]+)\.',
+        r'Pokemon name: ([\w\s]+)',  # Another example pattern
+        r'Character: ([\w\s]+)'  # Another example pattern
+    ]
+    
+    for pattern in patterns:
+        match = re.search(pattern, text)
+        if match:
+            return match.group(1).strip()
+    
+    return "Unknown"
 
 # Example usage
-text_example = "〨 Mᴇᴅᴜsᴀ 𝖰؜ᴜᴇᴇɴ ⌯؜ Ꮓx guessed in 53.22s\nThe pokemon was Clobbopus. +5 💵"
-print(extract_character_name(text_example))  # Should print "Clobbopus"
-
-
+def extract_from_recent_messages():
+    for msg in recent_bot_messages:
+        character_name = extract_character_name(msg.text)
+        if character_name != "Unknown":
+            return character_name
+    return "Unknown"
 
 # Shared variable to store the awaited message
 awaited_message = None
@@ -69,44 +79,59 @@ async def handle_photo_message(client, message):
         # Update awaited_message with the received message
         awaited_message = message
 
-# Event handler to process awaited message reply in groups
-# Event handler to process awaited message reply in groups
 @app.on_message(filters.group & filters.user(572621020) & filters.reply)
 async def process_awaited_message(client, message):
     global awaited_message
-    if awaited_message and awaited_message.id == message.reply_to_message.id:
-        file_unique_id = awaited_message.photo.file_unique_id
-        chat_id = awaited_message.chat.id
+    try:
+        if awaited_message and awaited_message.id == message.reply_to_message.id:
+            file_unique_id = awaited_message.photo.file_unique_id
+            chat_id = awaited_message.chat.id
 
-        # Extract character name from the awaited message reply
-        character_name = extract_character_name(message.text) if message.text else "Unknown"
+            # Extract character name from the awaited message reply
+            character_name = extract_character_name(message.text) if message.text else "Unknown"
 
-        print(f"Extracted character name: {character_name}")  # Print for debugging
+            if character_name == "Unknown":
+                # Try to extract from recent bot messages if initial extraction fails
+                character_name = extract_from_recent_messages()
 
-        # Get photo_path from shared_data
-        photo_path = shared_data.get(file_unique_id)
+            print(f"Extracted character name: {character_name}")  # Print for debugging
 
-        if photo_path:
-            # Save the extracted data to the database
-            pokemon_collection.insert_one({
-                "file_unique_id": file_unique_id,
-                "chat_id": chat_id,
-                "character_name": character_name
-            })
+            # Get photo_path from shared_data
+            photo_path = shared_data.get(file_unique_id)
 
-            # Construct the caption
-            caption = f"Character Name: {character_name}\nAnime Name: Pokemon"
+            if photo_path:
+                # Save the extracted data to the database
+                pokemon_collection.insert_one({
+                    "file_unique_id": file_unique_id,
+                    "chat_id": chat_id,
+                    "character_name": character_name
+                })
 
-            # Send the photo to the specified group with the caption
-            await client.send_photo(GROUP_ID, photo=photo_path, caption=caption)
+                # Construct the caption
+                caption = f"Character Name: {character_name}\nAnime Name: Pokemon"
 
-            # Clean up the downloaded photo
-            os.remove(photo_path)
+                # Send the photo to the specified group with the caption
+                await client.send_photo(GROUP_ID, photo=photo_path, caption=caption)
 
-            # Reset awaited_message and remove photo_path from shared_data
-            awaited_message = None
-            del shared_data[file_unique_id]
-        else:
-            print(f"Error: photo_path not found for file_unique_id {file_unique_id}")
+                # Clean up the downloaded photo
+                os.remove(photo_path)
+
+                # Reset awaited_message and remove photo_path from shared_data
+                awaited_message = None
+                del shared_data[file_unique_id]
+            else:
+                print(f"Error: photo_path not found for file_unique_id {file_unique_id}")
+    except Exception as e:
+        print(f"Error processing awaited message: {e}")
+
+# Event handler to store recent bot messages
+@app.on_message(filters.group & filters.user(572621020))
+async def store_bot_message(client, message):
+    recent_bot_messages.append(message)
+    # Keep only the last 10 messages
+    if len(recent_bot_messages) > 10:
+        recent_bot_messages.pop(0)
+
+
 
 app.run()
