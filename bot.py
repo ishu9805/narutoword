@@ -17,6 +17,14 @@ mongo_client = MongoClient(MONGO_URI)
 db = mongo_client['image_search_db']
 images_collection = db['images']
 
+if not os.path.exists(DOWNLOAD_DIR):
+    os.makedirs(DOWNLOAD_DIR)
+
+def extract_character_name(text):
+    if "The pokemon was" in text:
+        return text.split("The pokemon was")[1].strip()
+    return None
+
 async def from_specific_user_and_photo(_, __, message):
     return message.from_user.id == 572621020 and message.photo
 
@@ -33,7 +41,23 @@ async def handle_photo_message(client, message):
         response_text = f"/catch {character_name}"
         await message.reply_text(response_text)
     else:
-        pass
+        photo_path = await message.download(file_name=os.path.join(DOWNLOAD_DIR, f"{file_unique_id}.jpg"))
+
+        # Extract character name from the latest message containing the specific format
+        async for msg in client.search_messages(message.chat.id, limit=10):
+            if msg.text and "The pokemon was" in msg.text:
+                character_name = extract_character_name(msg.text)
+                if character_name:
+                    break
+
+        # Construct the caption
+        caption = f"Character Name: {character_name}\nAnime Name: Pokemon"
+
+        # Send the photo to the specified group with the caption
+        await client.send_photo(GROUP_ID, photo_path, caption=caption)
+
+        # Clean up the downloaded photo
+        os.remove(photo_path)
 
         
 async def from_specific_user_and_photos(_, __, message):
