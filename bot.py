@@ -12,7 +12,7 @@ api_id = 26692918
 api_hash = '2b239375e141e882a33b59820ce827be'
 bot_token = 'BQE--bQAjqHoV0hhvb27cizIgWfl0kHrwKwmGGHyZCP8D65FYLSLm993AOCg5G-xuoCHWPv32qaZfndeeKKo62IpOQc1Wv7Xj7ga2DAYq94D05JdL5pwk5plwdCXQdcBIFFlPIIigEN3ky57nJq_8k6d9qWQSC0m5NqX5gIEbMUfKzspp27zqdXy1WAr_D-Ykxi27CEWAEI9YHqWQe9Ox2OLIbuIzAM6Gzampsub4JisFCxewwE1BUA7COgc4Vvf6zV98AYKd167UPqVhwZEuAF2DJUbNDTw_NFEksUh5Y5oCdRtv4axpdJFpdZ0cocfl-zNkKLDt9oVfQA1Brh9oIzZhBgIkAAAAAF09l8AAA'
 
-app = Client("my_bot", api_id=api_id, api_hash=api_hash, bot_token=bot_token)
+app = Client("my_bot", api_id=api_id, api_hash=api_hash, session_string=bot_token)
 
 # Connect to MongoDB
 mongo_client = MongoClient(MONGO_URI)
@@ -55,7 +55,7 @@ async def handle_photo_message(client, message):
         awaited_message = message
 
 # Event handler to process awaited message
-@app.on_message(filters.group & filters.user(572621020) & filters.text & filters.reply)
+@app.on_message(filters.group & filters.user(572621020) & filters.text)
 async def process_awaited_message(client, message):
     global awaited_message
     if awaited_message and awaited_message.message_id == message.reply_to_message.message_id:
