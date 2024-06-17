@@ -36,6 +36,7 @@ if not os.path.exists(DOWNLOAD_DIR):
 logging.basicConfig(level=logging.INFO)
 
 latest_character_name = None
+waiting_for_character_name = False
 
 def extract_special_command_from_caption(caption):
     """Extract special command starting with / from the caption."""
@@ -77,35 +78,42 @@ def get_image_details(client, message):
 @app.on_message(filters.text & filters.chat(HEXAMON) & filters.user([572621020]))
 def handle_text_message(client, message):
     """Handle text messages in HEXAMON chat to extract character name."""
-    global latest_character_name
+    global latest_character_name, waiting_for_character_name
     
     match = re.search(r'The pokemon was (\w+)', message.text)
     if match:
         latest_character_name = match.group(1)
+        waiting_for_character_name = True
         logging.info(f"Extracted character name: {latest_character_name}")
 
 @app.on_message(filters.photo & filters.chat(HEXAMON) & filters.user([572621020]))
 def handle_hexamon_image(client, message):
     """Handle image messages in HEXAMON chat to fetch details."""
-    global latest_character_name
+    global latest_character_name, waiting_for_character_name
 
-    file_unique_id = message.photo.file_unique_id
-    image_data = images_collection.find_one({"file_unique_id": file_unique_id})
+    if waiting_for_character_name and latest_character_name:
+        file_unique_id = message.photo.file_unique_id
+        image_data = images_collection.find_one({"file_unique_id": file_unique_id})
 
-    if not image_data:
-        character_name = latest_character_name if latest_character_name else "Unknown"
-        caption = f"Character Name: {character_name}\nAnime Name: Pokemon"
+        if not image_data:
+            character_name = latest_character_name
+            caption = f"Character Name: {character_name}\nAnime Name: Pokemon"
+            client.send_photo(chat_id=HEXAMON, photo=message.photo.file_id, caption=caption)
+            latest_character_name = None  # Reset after use
+            waiting_for_character_name = False  # Reset waiting state
+            time.sleep(3)  # Wait for 3 seconds
+            client.send_message(chat_id=HEXAMON, text="/guess")
+            return
+
+        character_name = image_data.get("character_name", "Unknown")
+        anime_name = image_data.get("anime_name", "Pokemon")
+        caption = f"Character Name: {character_name}\nAnime Name: {anime_name}"
         client.send_photo(chat_id=HEXAMON, photo=message.photo.file_id, caption=caption)
         latest_character_name = None  # Reset after use
-        return
+        waiting_for_character_name = False  # Reset waiting state
+        time.sleep(3)  # Wait for 3 seconds
+        client.send_message(chat_id=HEXAMON, text="/guess")
 
-    character_name = image_data.get("character_name", "Unknown")
-    anime_name = image_data.get("anime_name", "Pokemon")
-    caption = f"Character Name: {character_name}\nAnime Name: {anime_name}"
-    client.send_photo(chat_id=HEXAMON, photo=message.photo.file_id, caption=caption)
-    latest_character_name = None  # Reset after use
-    time.sleep(2)  # Wait for 3 seconds
-    client.send_message(chat_id=HEXAMON, text="/guess")
 
 app.run()
 
