@@ -119,6 +119,7 @@ async def process_awaited_message(client, message):
                 # Reset awaited_message and remove photo_path from shared_data
                 awaited_message = None
                 del shared_data[file_unique_id]
+                recent_bot_messages.clear()
             else:
                 print(f"Error: photo_path not found for file_unique_id {file_unique_id}")
     except Exception as e:
