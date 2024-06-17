@@ -77,8 +77,14 @@ def get_image_details(client, message):
 
 @app.on_message(filters.text & filters.chat(HEXAMON) & filters.user([572621020]))
 def handle_text_message(client, message):
-    """Handle text messages in HEXAMON chat to extract character name."""
+    """Handle text messages in HEXAMON chat to extract character name or delete command."""
     global latest_character_name, waiting_for_character_name
+    
+    if message.text.startswith('/delete'):
+        latest_character_name = None
+        waiting_for_character_name = False
+        message.reply_text("Deleted the latest character name.")
+        return
     
     match = re.search(r'The pokemon was (\w+)', message.text)
     if match:
