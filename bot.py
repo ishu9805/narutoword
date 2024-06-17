@@ -25,63 +25,38 @@ if not os.path.exists(DOWNLOAD_DIR):
     os.makedirs(DOWNLOAD_DIR)
 
 # Dictionary to store photo_path temporarily
-awaited_messages = {}
+@app.on_message(filters.photo & filters.user()
+def get_image_details(client, message: Message):
+    """Handle replies to image messages with the 'name' command to fetch details."""
+    
+    replied_message = message.reply_to_message
 
+    if not replied_message or not replied_message.photo:
+        return
 
-# Function to extract character name from message text
-def extract_character_name(text):
-    # Regex pattern to match the desired format
-    pattern = r'The pokemon was ([\w\s]+)\.'
-    match = re.search(pattern, text)
-    if match:
-        return match.group(1).strip()
+    file_unique_id = replied_message.photo.file_unique_id
+
+    image_data = images_collection.find_one({"file_unique_id": file_unique_id})
+
+    if not image_data:
+        pass
+        except Exception as e:
+            logging.error(f"Failed to send photo to group: {e}")
+        return 
+
+    character_name = image_data.get("character_name")
+    anime_name = image_data.get("anime_name")
+
+    if replied_message.caption:
+        command = extract_special_command_from_caption(replied_message.caption)
     else:
-        return "Unknown"
+        command = None
 
-@app.on_message(filters.text)
-async def handle_text_message(client, message):
-    global awaited_messages
-
-    # Check if the message text contains the specific pattern
-    match = re.search(r'The pokemon was ([\w\s]+)\.', message.text)
-    if match:
-        character_name = match.group(1).strip()
-        print(f"Extracted character name: {character_name}")  # Print for debugging
-
-        # Check if there's an awaited message for this chat
-        if message.chat.id in awaited_messages:
-            awaited_message = awaited_messages[message.chat.id]
-            file_unique_id = awaited_message.photo.file_unique_id
-            photo_path = awaited_message.download(file_name=os.path.join(DOWNLOAD_DIR, f"{file_unique_id}.jpg"))
-
-            # Save the extracted data to the database
-            pokemon_collection.insert_one({
-                "file_unique_id": file_unique_id,
-                "chat_id": message.chat.id,
-                "character_name": character_name
-            })
-
-            # Construct the caption
-            caption = f"Character Name: {character_name}\nAnime Name: Pokemon"
-
-            # Send the photo to the specified group with the caption
-            await client.send_photo(GROUP_ID, photo=photo_path, caption=caption)
-
-            # Clean up the downloaded photo
-            os.remove(photo_path)
-
-            # Remove awaited message from dictionary
-            del awaited_messages[message.chat.id]
-        else:
-            print("No awaited message found for this chat.")  # Optionally log the event
-
-
-# Event handler for messages containing photo
-@app.on_message(filters.photo)
-async def handle_photo_message(client, message):
-    global awaited_messages
-
-    # Store the message in awaited_messages
-    awaited_messages[message.chat.id] = message
+    if command:
+        response_text = (
+            f"{command} {character_name}"
+        )
+     else: 
+         pass message.reply_text(response_text)
 
 app.run()
