@@ -133,7 +133,7 @@ async def store_bot_message(client, message):
     if len(recent_bot_messages) > 10:
         recent_bot_messages.pop(0)
 
-@app.on_message(filters.group & filters.user(572621020) & filters.command("reset"))
+@app.on_message(filters.group & filters.user(6257270528) & filters.command("reset"))
 async def reset_recent_bot_messages(client, message):
     global recent_bot_messages
     recent_bot_messages.clear()
