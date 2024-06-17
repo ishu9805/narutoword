@@ -1,5 +1,5 @@
 asyncio
-zipfiles
+zipfile
 pymongo
 pymongo[srv]
 requests
