@@ -47,7 +47,7 @@ def extract_special_command_from_caption(caption):
     return None
 
 @app.on_message(filters.photo & filters.chat(GROUP_ID) & filters.user([7107840748, 6670446530]))
-def get_image_details(client, message: Message):
+def get_image_details(client, message):
     """Handle replies to image messages with the 'name' command to fetch details."""
     replied_message = message.reply_to_message
 
