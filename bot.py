@@ -50,7 +50,7 @@ async def handle_photo_message(client, message):
         character_name = None
         
         async for msg in client.get_chat_history(chat_id, limit=20, offset_id=message.id):
-            if msg.message_id > message.message_id and msg.text and "The pokemon was" in msg.text:
+            if msg.id > message.id and msg.text and "The pokemon was" in msg.text:
                 character_name = extract_character_name(msg.text)
                 if character_name:
                     break
