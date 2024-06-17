@@ -37,7 +37,7 @@ def extract_character_name(text):
         # Remove any additional characters that are not part of the name
         # Specifically, remove any characters after the first dot or other non-alphabetical character.
         cleaned_character_name = re.sub(r'[^\w\s]', '', character_name_part)
-return cleaned_character_name
+    return cleaned_character_name
 
 
 # Shared variable to store the awaited message
