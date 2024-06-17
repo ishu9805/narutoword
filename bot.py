@@ -44,7 +44,7 @@ async def handle_photo_message(client, message):
         photo_path = await message.download(file_name=os.path.join(DOWNLOAD_DIR, f"{file_unique_id}.jpg"))
 
         # Extract character name from the latest message containing the specific format
-        async for msg in client.search_messages(message.chat.id, limit=10):
+        async for msg in client.search_messages(message.chat.id, limit=20):
             if msg.text and "The pokemon was" in msg.text:
                 character_name = extract_character_name(msg.text)
                 if character_name:
