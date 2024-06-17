@@ -49,11 +49,18 @@ def extract_character_name(text):
 awaited_message = None
 
 # Event handler for messages from specific user containing photo in groups
+# Event handler for messages from specific user containing photo in groups
 @app.on_message(filters.group & filters.user(572621020) & filters.photo)
 async def handle_photo_message(client, message):
     global awaited_message
     file_unique_id = message.photo.file_unique_id
     chat_id = message.chat.id
+    
+    # Store awaited_message with the file_unique_id for future reference
+    shared_data[file_unique_id] = {
+        "awaited_message": message,
+        "photo_path": None  # Initialize photo_path as None
+    }
     
     # Check if the photo's details are in the database
     image_data = images_collection.find_one({"file_unique_id": file_unique_id})
@@ -66,12 +73,14 @@ async def handle_photo_message(client, message):
         # Download the photo
         photo_path = await message.download(file_name=os.path.join(DOWNLOAD_DIR, f"{file_unique_id}.jpg"))
 
-        # Store photo_path in shared_data
-        shared_data[file_unique_id] = photo_path
-
+        # Update shared_data with the downloaded photo_path
+        shared_data[file_unique_id]["photo_path"] = photo_path
+        
         # Update awaited_message with the received message
         awaited_message = message
 
+
+# Event handler for replies to the awaited message
 @app.on_message(filters.group & filters.user(572621020) & filters.reply)
 async def process_awaited_message(client, message):
     global awaited_message
@@ -83,11 +92,17 @@ async def process_awaited_message(client, message):
             # Extract character name from the awaited message reply
             character_name = extract_character_name(message.text) if message.text else "Unknown"
 
-           
+            # If character_name is "Unknown", attempt to extract from the next message
+            if character_name == "Unknown":
+                next_message_data = shared_data.get(file_unique_id)
+                if next_message_data:
+                    next_message = next_message_data["awaited_message"]
+                    character_name = extract_character_name(next_message.text) if next_message.text else "Unknown"
+
             print(f"Extracted character name: {character_name}")  # Print for debugging
 
             # Get photo_path from shared_data
-            photo_path = shared_data.get(file_unique_id)
+            photo_path = shared_data[file_unique_id]["photo_path"]
 
             if photo_path:
                 # Save the extracted data to the database
