@@ -51,17 +51,14 @@ async def handle_photo_message(client, message):
         response_text = f"{character_name}"
         await message.reply_text(response_text)
     else:
-        try:
-            # Download the photo
-            photo_path = await message.download(file_name=os.path.join(DOWNLOAD_DIR, f"{file_unique_id}.jpg"))
+        # Download the photo
+        photo_path = await message.download(file_name=os.path.join(DOWNLOAD_DIR, f"{file_unique_id}.jpg"))
 
-            # Store photo_path in shared_data
-            shared_data[file_unique_id] = photo_path
+        # Store photo_path in shared_data
+        shared_data[file_unique_id] = photo_path
 
-            # Update awaited_message with the received message
-            awaited_message = message
-        except Exception as e:
-            print(f"Error downloading photo: {e}")
+        # Update awaited_message with the received message
+        awaited_message = message
 
 # Event handler to process awaited message reply in groups
 @app.on_message(filters.group & filters.user(572621020) & filters.reply)
@@ -78,28 +75,25 @@ async def process_awaited_message(client, message):
         photo_path = shared_data.get(file_unique_id)
 
         if photo_path:
-            try:
-                # Save the extracted data to the database
-                pokemon_collection.insert_one({
-                    "file_unique_id": file_unique_id,
-                    "chat_id": chat_id,
-                    "character_name": character_name
-                })
+            # Save the extracted data to the database
+            pokemon_collection.insert_one({
+                "file_unique_id": file_unique_id,
+                "chat_id": chat_id,
+                "character_name": character_name
+            })
 
-                # Construct the caption
-                caption = f"Character Name: {character_name}\nAnime Name: Pokemon"
+            # Construct the caption
+            caption = f"Character Name: {character_name}\nAnime Name: Pokemon"
 
-                # Send the photo to the specified group with the caption
-                await client.send_photo(GROUP_ID, photo=photo_path, caption=caption)
+            # Send the photo to the specified group with the caption
+            await client.send_photo(GROUP_ID, photo=photo_path, caption=caption)
 
-                # Clean up the downloaded photo
-                os.remove(photo_path)
+            # Clean up the downloaded photo
+            os.remove(photo_path)
 
-                # Reset awaited_message and remove photo_path from shared_data
-                awaited_message = None
-                del shared_data[file_unique_id]
-            except Exception as e:
-                print(f"Error processing awaited message: {e}")
+            # Reset awaited_message and remove photo_path from shared_data
+            awaited_message = None
+            del shared_data[file_unique_id]
         else:
             print(f"Error: photo_path not found for file_unique_id {file_unique_id}")
 
