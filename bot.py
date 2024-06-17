@@ -18,7 +18,7 @@ db = mongo_client['image_search_db']
 images_collection = db['images']
 
 async def from_specific_user_and_photo(_, __, message):
-    return message.from_user.id == 6670446530 and message.photo
+    return message.from_user.id == 572621020 and message.photo
 
 # Event handler for handling messages from specific user containing photo
 @app.on_message(filters.create(from_specific_user_and_photo))
