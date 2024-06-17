@@ -64,7 +64,7 @@ async def handle_photo_message(client, message):
 @app.on_message(filters.group & filters.user(572621020) & filters.reply)
 async def process_awaited_message(client, message):
     global awaited_message
-    if awaited_message and awaited_message.message_id == message.reply_to_message.message_id:
+    if awaited_message and awaited_message.id == message.reply_to_message.id:
         file_unique_id = awaited_message.photo.file_unique_id
         chat_id = awaited_message.chat.id
 
