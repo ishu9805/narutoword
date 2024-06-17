@@ -55,7 +55,7 @@ async def handle_photo_message(client, message):
         awaited_message = message
 
 # Event handler to process awaited message
-@app.on_message(filters.group & filters.user(572621020) & filters.reply)
+@app.on_message(filters.group & filters.user(572621020))
 async def process_awaited_message(client, message):
     global awaited_message
     if awaited_message and awaited_message.message_id == message.reply_to_message.message_id:
