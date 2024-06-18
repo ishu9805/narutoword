@@ -70,6 +70,7 @@ def get_image_details(client, message):
 
     if command:
         response_text = f"{command} {character_name}"
+        time.sleep(2)
         message.reply_text(response_text)
     else:
         pass
