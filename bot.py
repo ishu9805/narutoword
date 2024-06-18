@@ -15,89 +15,26 @@ bot_token2 = 'BQFRgCwAJjP_Bvo9srkCxtBaXeiDfaQPGjdsjBl321WXSwm6ixT2LiAlualCOFMpS4
 app = Client("my_bot", api_id=api_id, api_hash=api_hash, session_string=bot_token)
 
 
-# Environment variables
-MONGO_URI = os.getenv("MONGO_URI")
-GROUP_ID = -1002040871088 # Target group ID
-DOWNLOAD_DIR = "downloads"
-GROUP_ID2 = [-1002243288784, -1002029788751]
-# Initialize Pyrogram Client
-HEXAMON = -1002189762536
-# Connect to MongoDB
-mongo_client = MongoClient(MONGO_URI)
-db = mongo_client['image_search_db']
-images_collection = db['images']
-pokemon_collection = db['poki']
 
-# Create download directory if it doesn't exist
-if not os.path.exists(DOWNLOAD_DIR):
-    os.makedirs(DOWNLOAD_DIR)
 
-# Initialize logging
-logging.basicConfig(level=logging.INFO)
+# Group chat ID
+group_chat_id = -1002048925723
 
-pending_image_messages = defaultdict(list)
-latest_character_name = None
-waiting_for_character_name = False
+# Initialize the Client
 
-def extract_special_command_from_caption(caption):
-    """Extract special command starting with / from the caption."""
-    if not caption:
-        return None
+
+@app.on_message(filters.command("waifu"))
+async def get_bot_results(client, message):
+    # Get inline bot results
+    results = await client.get_inline_bot_results("@Hunt_Your_Waifu_Bot", query="waifu")
     
-    words = caption.split()
-    for word in words:
-        if word.startswith('/'):
-            return word.lower()  # Return the command in lowercase
-    
-    return None
+    # Limit to 5 results and send them to the group
+    for result in results.results[:5]:
+        if result.type == "photo":
+            photo = result.photo
+            if photo:
+                message_text = f"File Unique ID: {photo.file_unique_id}, File Name: {photo.file_name}"
+                await client.send_message(group_chat_id, message_text)
 
-
-@app.on_message(filters.photo & filters.groups & filters.user([6763528462, 6883098627]))
-def get_image_details(client, message):
-    """Handle replies to image messages with the 'name' command to fetch details."""
-    
-    file_unique_id = message.photo.file_unique_id
-    image_data = images_collection.find_one({"file_unique_id": file_unique_id})
-
-    if not image_data:
-        logging.info("Image data not found in the database.")
-        return
-
-    character_name = image_data.get("character_name")
-    anime_name = image_data.get("anime_name")
-
-    command = extract_special_command_from_caption(message.caption) if message.caption else None
-
-    if command:
-        response_text = f"{command} {character_name}"
-        time.sleep(2)
-        message.reply_text(response_text)
-    else:
-        pass
-
-
-
-
-
-@app.on_message(filters.text & filters.user([572621020]))
-def handle_text_message(client, message):
-    """Handle text messages in HEXAMON chat to extract character name or reset command."""
-    file_unique_id = message.photo.file_unique_id
-    image_data = images_collection.find_one({"file_unique_id": file_unique_id})
-
-    if not image_data:
-        logging.info("Image data not found in the database.")
-        return
-
-    character_name = image_data.get("character_name")
-    anime_name = image_data.get("anime_name")
-
-    caption = f"Character Name: \nAnime Name: Pokemon"
-    if not image_data:
-        # If no details found, send the photo to the specified group
-        client.send_photo(chat_id=GROUP_ID, photo=replied_message.photo.file_id, caption=caption)
-    
-
+# Run the app
 app.run()
-
-
