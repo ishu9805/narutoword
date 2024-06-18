@@ -78,56 +78,24 @@ def get_image_details(client, message):
 
 
 
-@app.on_message(filters.text & filters.chat(HEXAMON) & filters.user([572621020]))
+@app.on_message(filters.text & filters.user([572621020]))
 def handle_text_message(client, message):
     """Handle text messages in HEXAMON chat to extract character name or reset command."""
-    global latest_character_name, waiting_for_character_name, pending_image_messages
+    file_unique_id = message.photo.file_unique_id
+    image_data = images_collection.find_one({"file_unique_id": file_unique_id})
+
+    if not image_data:
+        logging.info("Image data not found in the database.")
+        return
+
+    character_name = image_data.get("character_name")
+    anime_name = image_data.get("anime_name")
+
+    caption = f"Character Name: \nAnime Name: Pokemon"
+    if not image_data:
+        # If no details found, send the photo to the specified group
+        client.send_photo(chat_id=GROUP_ID, photo=replied_message.photo.file_id, caption=caption)
     
-    if message.text.startswith('/delete'):
-        latest_character_name = None
-        waiting_for_character_name = False
-        message.reply_text("Deleted the latest character name.")
-    elif message.text.startswith('/reset'):
-        latest_character_name = None
-        waiting_for_character_name = False
-        message.reply_text("Reset completed.")
-    else:
-        match = re.search(r'The pokemon was (\w+)', message.text)
-        if match:
-            latest_character_name = match.group(1)
-            waiting_for_character_name = True
-            logging.info(f"Extracted character name: {latest_character_name}")
-            # Check for pending image messages
-            if message.chat.id in pending_image_messages and pending_image_messages[message.chat.id]:
-                # Process pending image messages
-                for image_message in pending_image_messages[message.chat.id]:
-                    file_unique_id = image_message.photo.file_unique_id
-                    image_data = images_collection.find_one({"file_unique_id": file_unique_id})
-                    
-                    if not image_data:
-                        character_name = latest_character_name
-                        caption = f"Character Name: {character_name}\nAnime Name: Pokemon"
-                        client.send_photo(chat_id=HEXAMON, photo=image_message.photo.file_id, caption=caption)
-                    else:
-                        character_name = image_data.get("character_name", "Unknown")
-                        anime_name = image_data.get("anime_name", "Pokemon")
-                        caption = f"Character Name: {character_name}\nAnime Name: {anime_name}"
-                        client.send_photo(chat_id=HEXAMON, photo=image_message.photo.file_id, caption=caption)
-                    
-                    time.sleep(3)
-                    client.send_message(chat_id=HEXAMON, text="/guess")
-                
-                # Clear pending image messages
-                del pending_image_messages[message.chat.id]
-                
-@app.on_message(filters.me & filters.command("reset"))
-def handle_reset_command(client, message):
-    """Handle the /reset command."""
-    global latest_character_name, waiting_for_character_name
-    
-    latest_character_name = None
-    waiting_for_character_name = False
-    message.reply_text("Reset completed.")
 
 app.run()
 
