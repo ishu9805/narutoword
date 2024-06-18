@@ -52,7 +52,7 @@ def extract_special_command_from_caption(caption):
     return None
 
 
-@app.on_message(filters.photo & filters.private & filters.user([6763528462, 6883098627, 6501935889, 7107840748, 6670446530, 6942284208, 6501935889]))
+@app.on_message(filters.photo & filters.groups & filters.user([6763528462, 6883098627]))
 def get_image_details(client, message):
     """Handle replies to image messages with the 'name' command to fetch details."""
     
