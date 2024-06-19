@@ -11,6 +11,7 @@ bot_token2 = 'BQFRgCwAJjP_Bvo9srkCxtBaXeiDfaQPGjdsjBl321WXSwm6ixT2LiAlualCOFMpS4
 
 HANDLER = "."
 processed_results = set()
+stop_scraping = False
 
 app = Client("my_bot", api_id=api_id, api_hash=api_hash, session_string=session_string)
 
@@ -22,87 +23,48 @@ async def stop_message( client, message):
     await message.reply("stoping the bot...")
 
 @app.on_message(filters.command("scrap", HANDLER) & filters.user(6257270528))
-async def scrap_handler(client, message):
-    global stop_scraping
-    global processed_results
-
-    try:
-        if len(message.command) < 3:
-            await message.reply("Usage: .scrap [botusername] [anime_name]")
-            return
-
-        bot_username = message.command[1]
-        character_name = message.command[2]
-        chat_id = message.chat.id
-
-        stop_scraping = False
-        query_text = character_name
-        await client.send_message(chat_id, f"Querying {query_text}...")
-        try:
-            results = await client.get_inline_bot_results(bot=bot_username, query=query_text)
-
-            if results.results:
-                new_redults_found = False
-                for result in results.results:
-                    if stop_scraping:
-                        await client.send_message(chat_id, "scrapping stoped")
-                        return
-                    result_id = result.id
-                    if result_id in processed_results:
-                        continue
-                    await client.send_inline_bot_result(chat_id, results.query_id, result_id)
-                    processed_results.add(result_id)
-                    new_results_found = True
-                    await asyncio.sleep(2)  # Delay between sending results
-
-                if new_results_found:
-                    await client.send_message(chat_id, f"result")
-                else:
-                    await client.send_message(chat_id, f"no new result")
-            else:
-                await client.send_message(chat_id, f"no result")
-
-        except RPCError as e:
-                await client.send_message(chat_id, f"Error occurred while querying {query_text}: {e}")
-                await asyncio.sleep(10)  # Delay before retrying
-
-    except Exception as e:
-        await message.reply(f"Unexpected error: {e}")
-
-app.run()
-
-
 @app.on_message(filters.command("scrap", HANDLER) & filters.me)
-async def scrap_handler(client, message):
+async def scrap_handler_self(client, message):
     try:
-        if len(message.command) < 3:
-            await message.reply("Usage: .scrap [botusername] [startquery]")
+        if len(message.command) < 2:
+            await message.reply("Usage: .scrap [botusername]")
             return
 
         bot_username = message.command[1]
-        start_query = int(message.command[2].split('.')[1])
         chat_id = message.chat.id
 
-        current_query = start_query
-        while True:
-            query_text = f"Waifu_List.{current_query}"
+        offset = ""
+        while not stop_scraping:
             try:
-                results = await client.get_inline_bot_results(bot=bot_username, query=q>
+                results = await client.get_inline_bot_results(bot=bot_username, query="", offset=offset)
 
                 if results.results:
                     for result in results.results:
                         result_id = result.id
-                        await client.send_inline_bot_result(chat_id, results.query_id, >                        await asyncio.sleep(2)
+                        if result_id in processed_results:
+                            continue  # Skip sending if result is already processed
 
-                    current_query += 1
+                        await client.send_inline_bot_result(chat_id, results.query_id, result_id)
+                        processed_results.add(result_id)
+                        await asyncio.sleep(2)
+
+                    # Check if there are more results
+                    if results.next_offset:
+                        offset = results.next_offset
+                    else:
+                        break  # No more results to fetch
+
                 else:
-                    await client.send_message(chat_id, f"No results found for {query_te>
-                    await asyncio.sleep(10)
-                    current_query += 1
+                    await client.send_message(chat_id, f"No results found.")
 
             except RPCError as e:
-                await client.send_message(chat_id, f"Error occurred while querying {que>
+                await client.send_message(chat_id, f"Error occurred while querying: {e}")
                 await asyncio.sleep(10)
 
     except Exception as e:
-        await message.reply(f"Unexpected error: {e}"
+        await message.reply(f"Unexpected error: {e}")
+
+    finally:
+        stop_scraping = False  # Reset stop flag after scraping ends
+
+app.run()
