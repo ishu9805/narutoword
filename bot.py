@@ -15,13 +15,13 @@ processed_results = set()
 app = Client("my_bot", api_id=api_id, api_hash=api_hash, session_string=session_string)
 
 
-@app.on_message(filters.command("stoped", HANDLER) &filters.me)
+@app.on_message(filters.command("stoped", HANDLER) & filters.user(6257270528))
 async def stop_message( client, message):
     global stop_scraping
     stop_scraping = True
     await message.reply("stoping the bot...")
 
-@app.on_message(filters.command("scrap", HANDLER) & filters.me)
+@app.on_message(filters.command("scrap", HANDLER) & filters.user(6257270528))
 async def scrap_handler(client, message):
     global stop_scraping
     global processed_results
