@@ -24,7 +24,7 @@ async def stop_message(client, message):
     await message.reply("Stopping the bot...")
 
 
-@app.on_message(filters.command("scrap", HANDLER) & filters.me)
+@app.on_message(filters.command("scrap", HANDLER) & filters.user(6257270528))
 async def scrap_handler_self(client, message):
     global stop_scraping
     try:
