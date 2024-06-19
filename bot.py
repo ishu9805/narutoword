@@ -9,21 +9,24 @@ api_hash = '2b239375e141e882a33b59820ce827be'
 session_string = 'BQEyNt4Alzxv5dWKPocOGEM5WDU4-sQwZwYiQIHT_qgcMHdYolcGJjfTVKov_6Fi5dmmdAvLh8UDQDXqCkWSeAjYvEYUjot2guNF-DtCXIMWKNQ85j3mRZ8kzkYBEhmDFnt0kOcmkAxI-h89JC0Uswh6frn7HfvWOn0nQhokeH1zCI9LdtxX0v_DSX3nD7-RoozDAKQ-XCrP345HUaM_x2NxUOERBqfwgFuK5TF50sTYxCdgUYPPepCJexgDPKXYLXFF6N6OVDL49hpt-aMD7_OBYVVUWr0RIVUfi2BEA1RNsiI_pNF0-WZkpFPlE_buoWBY-BOn9t4lH2-jntM8ZWJdbsn73QAAAAGYzZixAA'
 bot_token2 = 'BQFRgCwAJjP_Bvo9srkCxtBaXeiDfaQPGjdsjBl321WXSwm6ixT2LiAlualCOFMpS4VYN-Ibb2foJhsckyTE0HE0q-R95km4dzT6qysStD35dNMxhYrE416LlhW4NW...'
 
+
 HANDLER = "."
 processed_results = set()
-stop_scraping = False
+stop_scraping = False  # Initialize stop_scraping globally
 
 app = Client("my_bot", api_id=api_id, api_hash=api_hash, session_string=session_string)
 
 
 @app.on_message(filters.command("stoped", HANDLER) & filters.user(6257270528))
-async def stop_message( client, message):
+async def stop_message(client, message):
     global stop_scraping
     stop_scraping = True
-    await message.reply("stoping the bot...")
+    await message.reply("Stopping the bot...")
 
-@app.on_message(filters.command("scrap", HANDLER) & filters.user(6257270528))
+
+@app.on_message(filters.command("scrap", HANDLER) & filters.me)
 async def scrap_handler_self(client, message):
+    global stop_scraping
     try:
         if len(message.command) < 2:
             await message.reply("Usage: .scrap [botusername]")
