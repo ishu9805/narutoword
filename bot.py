@@ -23,7 +23,6 @@ async def stop_message( client, message):
     await message.reply("stoping the bot...")
 
 @app.on_message(filters.command("scrap", HANDLER) & filters.user(6257270528))
-@app.on_message(filters.command("scrap", HANDLER) & filters.me)
 async def scrap_handler_self(client, message):
     try:
         if len(message.command) < 2:
