@@ -70,3 +70,39 @@ async def scrap_handler(client, message):
         await message.reply(f"Unexpected error: {e}")
 
 app.run()
+
+
+@app.on_message(filters.command("scrap", HANDLER) & filters.me)
+async def scrap_handler(client, message):
+    try:
+        if len(message.command) < 3:
+            await message.reply("Usage: .scrap [botusername] [startquery]")
+            return
+
+        bot_username = message.command[1]
+        start_query = int(message.command[2].split('.')[1])
+        chat_id = message.chat.id
+
+        current_query = start_query
+        while True:
+            query_text = f"Waifu_List.{current_query}"
+            try:
+                results = await client.get_inline_bot_results(bot=bot_username, query=q>
+
+                if results.results:
+                    for result in results.results:
+                        result_id = result.id
+                        await client.send_inline_bot_result(chat_id, results.query_id, >                        await asyncio.sleep(2)
+
+                    current_query += 1
+                else:
+                    await client.send_message(chat_id, f"No results found for {query_te>
+                    await asyncio.sleep(10)
+                    current_query += 1
+
+            except RPCError as e:
+                await client.send_message(chat_id, f"Error occurred while querying {que>
+                await asyncio.sleep(10)
+
+    except Exception as e:
+        await message.reply(f"Unexpected error: {e}"
