@@ -80,7 +80,7 @@ def get_image_details(client, message):
 
 
 def schedule_guess_message():
-    schedule.every(1).hour.do(send_guess_message)  # Send /guess message every 1 hour
+    schedule.every(10).minutes.do(send_guess_message)  # Send /guess message every 1 hour
     while True:
         schedule.run_pending()
         time.sleep(1)
