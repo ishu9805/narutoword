@@ -54,7 +54,7 @@ def send_guess_message():
 def get_image_details(client, message):
     """Handle replies to image messages with the specific caption to fetch details."""
 
-    if message.caption and "Who's that pokemon?" in message.caption:
+    if message.caption and "Who's that" in message.caption:
         file_unique_id = message.photo.file_unique_id
         image_data = images_collection.find_one({"file_unique_id": file_unique_id})
 
