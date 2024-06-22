@@ -61,8 +61,10 @@ pokemon_name = None
 
 def caption_filter(func):
     async def wrapper(client, message):
-        if message.caption and "Who's that pokemon?" in message.caption:
+        if message.caption and "who's that pokemon?" in message.caption.lower():
             return await func(client, message)
+        else:
+            return  # or return "" if you want to return an empty string
     return wrapper
 
 @app.on_message(filters.chat(HEXAMONS) & filters.user([572621020]))
