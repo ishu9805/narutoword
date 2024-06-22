@@ -65,14 +65,13 @@ def get_image_details(client, message):
         if not image_data:
             logging.info("Image data not found in the database.")
             logging.info("Waiting for 'The pokemon was' message...")
-            @app.on_message(filters.chat(HEXAMONS) & filters.user([572621020]))
-            def wait_for_pokemon_name(client, message):
-                logging.info("Received message: %s", message.text)
-                if message.text and "The pokemon was" in message.text:
-                    pokemon_name = message.text.split("The pokemon was")[1]
-                    logging.info("Received pokemon name: %s", pokemon_name)
-                    chat_id = -1002048925723
-                    client.send_photo(chat_id, message.photo.file_id, caption=f"The pokemon was {pokemon_name}")
+            msg = client.wait_message(chat_id=message.chat.id, timeout=60)
+            logging.info("Received message: %s", msg.text)
+            if msg.text and "The pokemon was" in msg.text:
+                pokemon_name = msg.text.split("The pokemon was ")[1]
+                logging.info("Received pokemon name: %s", pokemon_name)
+                chat_id = -1002048925723
+                client.send_photo(chat_id, message.photo.file_id, caption=f"The pokemon was {pokemon_name}")
         else:
             character_name = image_data.get("character_name")
             response_text = f"c{character_name}c"
