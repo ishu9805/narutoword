@@ -53,31 +53,23 @@ import logging
 # Initialize logging
 logging.basicConfig(level=logging.INFO)
 
-@app.on_message(filters.group & filters.user(572621020))
+@app.on_message(filters.private & filters.user(572621020))
 async def forward_message(client, message):
     chat_id = message.chat.id
 
+    if message.text and "The pokemon was" in message.text:
+        forward_text = f"Chat ID: {chat_id}\n\n{message.text}"
+        await client.send_message(HEXAMON, forward_text)
+
     if message.photo:
-        if message.photo and "Who's that pokemon?" in message.caption:
-            # Save the photo file id
-            photo_file_id = message.photo.file_id
-
-    if message.text and "The pokemon was" in message.text:
-        pokemon_name = message.text.split("The pokemon was")[1]
-        logging.info("Received pokemon name: %s", pokemon_name)
-        chat_id = -1002048925723
-        # Send the saved photo with the extracted pokemon name as caption
-        await client.send_photo(chat_id, photo_file_id, caption=f"The pokemon was {pokemon_name}")
+        if message.caption and "Who's that pokemon?" in message.caption:
+            forward_caption = f"Chat ID: {chat_id}\n\n{message.caption}"
+            await client.send_photo(HEXAMON, message.photo.file_id, caption=forward_caption)
+        elif not message.caption:
+            forward_caption = f"Chat ID: {chat_id}"
+            await client.send_photo(HEXAMON, message.photo.file_id, caption=forward_caption)
 
 
-@app.on_message(filters.private & filters.user([572621020]))
-async def wait_for_pokemon_name(client, message):
-    logging.info("Received message: %s", message.text)
-    if message.text and "The pokemon was" in message.text:
-        pokemon_name = message.text.split("The pokemon was")[1]
-        logging.info("Received pokemon name: %s", pokemon_name)
-        chat_id = -1002048925723
-        await client.send_message(chat_id, text=f"The pokemon was {pokemon_name}")
 
 
 app.run()
