@@ -83,7 +83,8 @@ def wait_for_pokemon_name(client, message):
     logging.info("Received pokemon name: %s", pokemon_name)
     chat_id = -1002048925723
     photo_path = os.path.join(DOWNLOAD_DIR, f"{message.reply_to_message.photo.file_unique_id}.jpg")
-    client.send_photo(chat_id, photo=photo_path, caption=f"The pokemon was {pokemon_name}")
+    
+    client.send_photo(chat_id=chat_id, photo=photo_path, caption=f"The pokemon was {pokemon_name}")
 
 
 
