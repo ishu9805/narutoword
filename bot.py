@@ -74,8 +74,8 @@ async def forward_message(client, message: Message):
 def wait_for_pokemon_name(client, message):
     logging.info("Received message: %s", message.text)
     if message.text and "The pokemon was" in message.text:
-    pokemon_name = message.text.split("The pokemon was")[1]
-    logging.info("Received pokemon name: %s", pokemon_name)
-    chat_id = -1002048925723
-    client.send_photo(chat_id, text=f"The pokemon was {pokemon_name}")
+        pokemon_name = message.text.split("The pokemon was")[1]
+        logging.info("Received pokemon name: %s", pokemon_name)
+        chat_id = -1002048925723
+        client.send_photo(chat_id, text=f"The pokemon was {pokemon_name}")
 app.run()
