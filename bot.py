@@ -46,9 +46,7 @@ logging.basicConfig(level=logging.INFO)
 import schedule
 import threading
 
-def send_guess_message():
-    for chat_id in HEXAMONS:
-        app.send_message(chat_id, "/guess")
+
 
 import logging
 
@@ -88,11 +86,7 @@ def wait_for_pokemon_name(client, message):
     client.send_photo(chat_id, photo=photo_path, caption=f"The pokemon was {pokemon_name}")
 
 
-def schedule_guess_message():
-    schedule.every(10).minutes.do(send_guess_message)  # Send /guess message every 1 hour
-    while True:
-        schedule.run_pending()
-        time.sleep(1)
+
 
 threading.Thread(target=schedule_guess_message).start()
 
