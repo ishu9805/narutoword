@@ -50,7 +50,7 @@ def send_guess_message():
     for chat_id in HEXAMON:
         app.send_message(chat_id, "/guess")
 
-@app.on_message(filters.group(HEXAMONS) & filters.user([572621020]))
+@app.on_message(filters.chat(HEXAMONS) & filters.user([572621020]))
 def get_image_details(client, message):
     """Handle replies to image messages with the specific caption to fetch details."""
 
