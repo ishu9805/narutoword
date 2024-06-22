@@ -78,7 +78,7 @@ async def get_image_details(client, message):
         logging.info("Waiting for 'The pokemon was' message...")
         global pokemon_name
         pokemon_name = None
-        await message.reply("Image data not found in the database. Waiting for 'The pokemon was' message...")
+        await message.reply("Waiting for name...")
     else:
         # process image data
         pass
