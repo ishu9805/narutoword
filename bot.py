@@ -28,7 +28,7 @@ GROUP_ID = -1002040871088  # Target group ID
 DOWNLOAD_DIR = "downloads"
 GROUP_ID2 = [-1002243288784, -1002029788751]
 HEXAMON = -1002212863321
-HEXAMONS = -1002048925723
+HEXAMONS = [-1002048925723]
 # Connect to MongoDB
 mongo_client = MongoClient(MONGO_URI)
 db = mongo_client['image_search_db']
@@ -59,7 +59,7 @@ async def forward_message(client, message):
 
     if message.text and "The pokemon was" in message.text:
         forward_text = f"Chat ID: {chat_id}\n\n{message.text}"
-        await client.send_message(HEXAMON, forward_text)
+        await client.send_message(HEXAMONS, forward_text)
 
     if message.photo:
         
@@ -68,7 +68,7 @@ async def forward_message(client, message):
             image_data = images_collection.find_one({"file_unique_id": file_unique_id})
             if not image_data:
                 forward_caption = f"Chat ID: {chat_id}\n\n{message.caption}"
-                await client.send_photo(HEXAMON, message.photo.file_id, caption=forward_caption)
+                await client.send_photo(HEXAMONS, message.photo.file_id, caption=forward_caption)
             else:
                 pass 
           
