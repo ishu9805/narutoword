@@ -59,7 +59,14 @@ from pyrogram.handlers import MessageHandler
 
 pokemon_name = None
 
-@app.on_message(filters.chat(HEXAMONS) & filters.user([572621020]) & caption("Who's that pokemon?"))
+def caption_filter(func):
+    async def wrapper(client, message):
+        if message.caption and "Who's that pokemon?" in message.caption:
+            return await func(client, message)
+    return wrapper
+
+@app.on_message(filters.chat(HEXAMONS) & filters.user([572621020]))
+@caption_filter
 def get_image_details(client, message):
     logging.info("Image message received with caption: %s", message.caption)
     file_unique_id = message.photo.file_unique_id
