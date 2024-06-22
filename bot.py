@@ -50,27 +50,35 @@ def send_guess_message():
     for chat_id in HEXAMON:
         app.send_message(chat_id, "/guess")
 
-@app.on_message(filters.chat(HEXAMON) & filters.user([572621020]))
+import logging
+
+# Initialize logging
+logging.basicConfig(level=logging.INFO)
+
+@app.on_message(filters.chat(HEXAMONS) & filters.user([572621020]))
 def get_image_details(client, message):
+    logging.info("Received message: %s", message.text)
     if message.photo and "Who's that pokemon?" in message.caption:
+        logging.info("Image message received with caption: %s", message.caption)
         file_unique_id = message.photo.file_unique_id
         image_data = images_collection.find_one({"file_unique_id": file_unique_id})
         if not image_data:
             logging.info("Image data not found in the database.")
-            chat_id = message.chat.id
-            client.send_message(chat_id, "Waiting for the pokemon name...")
+            logging.info("Waiting for 'The pokemon was' message...")
             @app.on_message(filters.chat(HEXAMONS) & filters.user([572621020]))
             def wait_for_pokemon_name(client, message):
+                logging.info("Received message: %s", message.text)
                 if message.text and "The pokemon was" in message.text:
-                    pokemon_name = message.text.split("The pokemon was ")[1]
+                    pokemon_name = message.text.split("The pokemon was")[1]
+                    logging.info("Received pokemon name: %s", pokemon_name)
                     chat_id = -1002048925723
                     client.send_photo(chat_id, message.reply_to_message.photo.file_id, caption=f"The pokemon was {pokemon_name}")
         else:
             character_name = image_data.get("character_name")
             response_text = f"c{character_name}c"
+            logging.info("Sending response: %s", response_text)
             time.sleep(5)
             client.send_message(chat_id=message.chat.id, text=response_text)
-
 def schedule_guess_message():
     schedule.every(10).minutes.do(send_guess_message)  # Send /guess message every 1 hour
     while True:
