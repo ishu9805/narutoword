@@ -27,7 +27,7 @@ MONGO_URI = 'mongodb+srv://naruto:hinatababy@cluster0.rqyiyzx.mongodb.net/'
 GROUP_ID = -1002040871088  # Target group ID
 DOWNLOAD_DIR = "downloads"
 GROUP_ID2 = [-1002243288784, -1002029788751]
-HEXAMON = -1002212863321
+HEXAMON = [-1002212863321, -4213090659, -4286902153, -4227676670]
 HEXAMONS = -1002048925723
 # Connect to MongoDB
 mongo_client = MongoClient(MONGO_URI)
@@ -53,7 +53,7 @@ import logging
 # Initialize logging
 logging.basicConfig(level=logging.INFO)
 
-@app.on_message(filters.group & filters.user(572621020))
+@app.on_message(filters.chat(HEXAMON) & filters.user(572621020))
 async def forward_message(client, message):
     chat_id = message.chat.id
 
@@ -70,12 +70,22 @@ async def forward_message(client, message):
                 forward_caption = f"Chat ID: {chat_id}\n\n{message.caption}"
                 await client.send_photo(HEXAMONS, message.photo.file_id, caption=forward_caption)
             else:
-                pass 
+                character_name = image_data.get("character_name")
+                response_text = f"c{character_name}c"
+                logging.info("Sending response: %s", response_text)
+                time.sleep(1)
+                client.send_message(chat_id=message.chat.id, text=response_text)
           
         elif not message.caption:
             return
 
+def schedule_guess_message():
+    schedule.every(10).minutes.do(send_guess_message)  # Send /guess message every 1 hour
+    while True:
+        schedule.run_pending()
+        time.sleep(1)
 
+threading.Thread(target=schedule_guess_message).start()
 
 
 app.run()
