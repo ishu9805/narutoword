@@ -62,12 +62,18 @@ async def forward_message(client, message):
         await client.send_message(HEXAMON, forward_text)
 
     if message.photo:
+        
         if message.caption and "Who's that pokemon?" in message.caption:
-            forward_caption = f"Chat ID: {chat_id}\n\n{message.caption}"
-            await client.send_photo(HEXAMON, message.photo.file_id, caption=forward_caption)
+            file_unique_id = message.photo.file_unique_id
+            image_data = images_collection.find_one({"file_unique_id": file_unique_id})
+            if not image_data:
+                forward_caption = f"Chat ID: {chat_id}\n\n{message.caption}"
+                await client.send_photo(HEXAMON, message.photo.file_id, caption=forward_caption)
+            else:
+                pass 
+          
         elif not message.caption:
-            forward_caption = f"Chat ID: {chat_id}"
-            await client.send_photo(HEXAMON, message.photo.file_id, caption=forward_caption)
+            return
 
 
 
