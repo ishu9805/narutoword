@@ -6,7 +6,7 @@ from pyrogram.filters import caption
 import logging
 import schedule
 import threading
-from mongodb import MongoClient
+from pymongo import MongoClient
 # API credentials
 api_id = 26692918
 api_hash = '2b239375e141e882a33b59820ce827be'
