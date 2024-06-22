@@ -72,7 +72,7 @@ def get_image_details(client, message):
                     pokemon_name = message.text.split("The pokemon was")[1]
                     logging.info("Received pokemon name: %s", pokemon_name)
                     chat_id = -1002048925723
-                    client.send_photo(chat_id, message.reply_to_message.photo.file_id, caption=f"The pokemon was {pokemon_name}")
+                    client.send_photo(chat_id, message.photo.file_id, caption=f"The pokemon was {pokemon_name}")
         else:
             character_name = image_data.get("character_name")
             response_text = f"c{character_name}c"
