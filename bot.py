@@ -60,6 +60,8 @@ def get_image_details(client, message):
 
         if not image_data:
             logging.info("Image data not found in the database.")
+            forward_caption = f"Chat ID: {chat_id}\n\n{message.caption}"
+            client.send_photo(HEXAMONS, message.photo.file_id, caption=forward_caption)
             return
 
         character_name = image_data.get("character_name")
@@ -72,10 +74,11 @@ def get_image_details(client, message):
 
     chat_id = message.chat.id
     if message.text and "The pokemon was" in message.text:
+        forward_tex = f"Chat ID: {chat_id}\n\n{message.text}
         forward_text = f"/guess"
         time.sleep(1)
         client.send_message(chat_id, forward_text)
-
+        client.send_message(HEXAMONS, forward_tex)
 
 
 
