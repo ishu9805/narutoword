@@ -57,7 +57,7 @@ logging.basicConfig(level=logging.INFO)
 
 @app.on_message(filters.chat(HEXAMONS) & filters.user([572621020]))
 def get_image_details(client, message):
-    logging.info("Recei\\\\ved message: %s", message.text)
+    logging.info("Received message: %s", message.text)
     if message.photo and "Who's that pokemon?" in message.caption:
         logging.info("Image message received with caption: %s", message.caption)
         file_unique_id = message.photo.file_unique_id
@@ -65,21 +65,29 @@ def get_image_details(client, message):
         if not image_data:
             logging.info("Image data not found in the database.")
             logging.info("Waiting for 'The pokemon was' message...")
-            @app.on_message(filters.chat(HEXAMONS) & filters.user([572621020]))
-            def wait_for_pokemon_name(client, message):
-                logging.info("Recei...ved message: %s", message.text)
-                if message.text and "The pokemon was" in message.text:
-                    pokemon_name = message.text.split("The pokemon was")[1]
-                    logging.info("Received pokemon name: %s", pokemon_name)
-                    chat = -1002048925723
-                    client.send_photo(chat_id=chat, text=pokemon_name)
-                    logging.info("sending pokemon name to chat" , pokemon_name)
+            global pokemon_name
+            pokemon_name = None
+            await message.reply("Waiting for name...")
+            # Download the photo
+            photo_path = os.path.join(DOWNLOAD_DIR, f"{file_unique_id}.jpg")
+            await message.download(media_path=photo_path)
         else:
             character_name = image_data.get("character_name")
             response_text = f"c{character_name}c"
             logging.info("Sending response: %s", response_text)
             time.sleep(5)
             client.send_message(chat_id=message.chat.id, text=response_text)
+
+@app.on_message(filters.chat(HEXAMONS) & filters.user([572621020]) & filters.regex("The pokemon was"))
+def wait_for_pokemon_name(client, message):
+    global pokemon_name
+    pokemon_name = message.text.split("The pokemon was ")[1]
+    logging.info("Received pokemon name: %s", pokemon_name)
+    chat_id = -1002048925723
+    photo_path = os.path.join(DOWNLOAD_DIR, f"{message.reply_to_message.photo.file_unique_id}.jpg")
+    client.send_photo(chat_id, photo=photo_path, caption=f"The pokemon was {pokemon_name}")
+
+
 def schedule_guess_message():
     schedule.every(10).minutes.do(send_guess_message)  # Send /guess message every 1 hour
     while True:
