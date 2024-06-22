@@ -55,6 +55,8 @@ import logging
 # Initialize logging
 logging.basicConfig(level=logging.INFO)
 
+from pyrogram.handlers import MessageHandler
+
 @app.on_message(filters.chat(HEXAMONS) & filters.user([572621020]))
 def get_image_details(client, message):
     logging.info("Received message: %s", message.text)
@@ -65,7 +67,8 @@ def get_image_details(client, message):
         if not image_data:
             logging.info("Image data not found in the database.")
             logging.info("Waiting for 'The pokemon was' message...")
-            msg = client.wait_message(chat_id=message.chat.id, timeout=60)
+            conv = client.conversation(message.chat.id)
+            msg = conv.wait_for_message(timeout=60)
             logging.info("Received message: %s", msg.text)
             if msg.text and "The pokemon was" in msg.text:
                 pokemon_name = msg.text.split("The pokemon was ")[1]
