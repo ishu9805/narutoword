@@ -59,7 +59,7 @@ from pyrogram.handlers import MessageHandler
 
 pokemon_name = None
 
-@app.on_message(Filters.chat(HEXAMONS) & Filters.user([572621020]) & Filters.caption("Who's that pokemon?"))
+@app.on_message(filters.chat(HEXAMONS) & filters.user([572621020]) & filters.caption("Who's that pokemon?"))
 def get_image_details(client, message):
     logging.info("Image message received with caption: %s", message.caption)
     file_unique_id = message.photo.file_unique_id
@@ -70,7 +70,7 @@ def get_image_details(client, message):
         global pokemon_name
         pokemon_name = None
 
-@app.on_message(Filters.chat(HEXAMONS) & Filters.user([572621020]) & Filters.regex("The pokemon was"))
+@app.on_message(filters.chat(HEXAMONS) & filters.user([572621020]) & filters.regex("The pokemon was"))
 def get_pokemon_name(client, message):
     global pokemon_name
     pokemon_name = message.text.split("The pokemon was ")[1]
