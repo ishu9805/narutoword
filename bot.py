@@ -63,8 +63,8 @@ def get_image_details(client, message):
             client.send_photo(chat_id, message.photo.file_id, caption=f"The pokemon was {pokemon_name}")
     else:
         character_name = image_data.get("character_name")
-        response_text = f"c{character_name}"
-        time.sleep(2)
+        response_text = f"c{character_name}c"
+        time.sleep(5)
         client.send_message(chat_id=message.chat.id, text=response_text)
 
 def schedule_guess_message():
