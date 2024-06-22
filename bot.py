@@ -55,7 +55,7 @@ import logging
 # Initialize logging
 logging.basicConfig(level=logging.INFO)
 
-from pyrogram.handlers import MessageHandler, Filters
+from pyrogram.handlers import MessageHandler, filters
 
 pokemon_name = None
 
