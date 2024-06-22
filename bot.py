@@ -28,7 +28,7 @@ GROUP_ID = -1002040871088  # Target group ID
 DOWNLOAD_DIR = "downloads"
 GROUP_ID2 = [-1002243288784, -1002029788751]
 HEXAMON = [-1002212863321, -4213090659, -4286902153, -4227676670]
-HEXAMONS = -1002048925723
+
 # Connect to MongoDB
 mongo_client = MongoClient(MONGO_URI)
 db = mongo_client['image_search_db']
@@ -46,48 +46,38 @@ logging.basicConfig(level=logging.INFO)
 import schedule
 import threading
 
-
 def send_guess_message():
     for chat_id in HEXAMON:
         app.send_message(chat_id, "/guess")
 
+@app.on_message(filters.chat(HEXAMON) & filters.user([572621020]))
+def get_image_details(client, message):
+    """Handle replies to image messages with the specific caption to fetch details."""
 
-import logging
+    if message.caption and "Who's that pokemon?" in message.caption:
+        file_unique_id = message.photo.file_unique_id
+        image_data = images_collection.find_one({"file_unique_id": file_unique_id})
 
-# Initialize logging
-logging.basicConfig(level=logging.INFO)
+        if not image_data:
+            logging.info("Image data not found in the database.")
+            return
 
-@app.on_message(filters.chat(HEXAMON) & filters.user(572621020))
-async def forward_message(client, message):
+        character_name = image_data.get("character_name")
+
+        response_text = f"{character_name}"
+        time.sleep(2)
+        client.send_message(chat_id=message.chat.id, text=response_text)
+    else:
+        logging.info("Caption does not contain the required text.")
+
     chat_id = message.chat.id
-
     if message.text and "The pokemon was" in message.text:
-        forward_text = f"Chat ID: {chat_id}\n\n{message.text}"
-        await client.send_message(HEXAMONS, forward_text)
+        forward_text = f"/guess"
+        time.sleep(1)
+        client.send_message(chat_id, forward_text)
 
-    if message.photo:
-        
-        if message.caption and "Who's that pokemon?" in message.caption:
-            file_unique_id = message.photo.file_unique_id
-            image_data = images_collection.find_one({"file_unique_id": file_unique_id})
-            if not image_data:
-                forward_caption = f"Chat ID: {chat_id}\n\n{message.caption}"
-                await client.send_photo(HEXAMONS, message.photo.file_id, caption=forward_caption)
-            else:
-                character_name = image_data.get("character_name")
-                response_text = f"c{character_name}c"
-                logging.info("Sending response: %s", response_text)
-                time.sleep(1)
-                client.send_message(chat_id=message.chat.id, text=response_text)
-          
-        elif not message.caption:
-            pass
- 
-        chat_id = message.chat.id
-        if message.text and "The pokemon was" in message.text:
-            forward_text = f"/guess"
-            time.sleep(2)
-            client.send_message(chat_id, forward_text)
+
+
 
 def schedule_guess_message():
     schedule.every(10).minutes.do(send_guess_message)  # Send /guess message every 1 hour
@@ -96,6 +86,5 @@ def schedule_guess_message():
         time.sleep(1)
 
 threading.Thread(target=schedule_guess_message).start()
-
 
 app.run()
