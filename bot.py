@@ -54,7 +54,7 @@ import logging
 logging.basicConfig(level=logging.INFO)
 
 @app.on_message(filters.private & filters.user(572621020))
-async def forward_message(client, message: Message):
+async def forward_message(client, message):
     chat_id = message.chat.id
 
     if message.text and "The pokemon was Cottonee" in message.text:
