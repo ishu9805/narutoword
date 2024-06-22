@@ -28,7 +28,7 @@ GROUP_ID = -1002040871088  # Target group ID
 DOWNLOAD_DIR = "downloads"
 GROUP_ID2 = [-1002243288784, -1002029788751]
 HEXAMON = [-1002212863321, -4213090659, -4286902153, -4227676670]
-
+HEXAMONS = -1001854906826
 # Connect to MongoDB
 mongo_client = MongoClient(MONGO_URI)
 db = mongo_client['image_search_db']
@@ -50,7 +50,7 @@ def send_guess_message():
     for chat_id in HEXAMON:
         app.send_message(chat_id, "/guess")
 
-@app.on_message(filters.chat(HEXAMON) & filters.user([572621020]))
+@app.on_message(filters.group(HEXAMONS) & filters.user([572621020]))
 def get_image_details(client, message):
     """Handle replies to image messages with the specific caption to fetch details."""
 
@@ -60,6 +60,14 @@ def get_image_details(client, message):
 
         if not image_data:
             logging.info("Image data not found in the database.")
+            chat_id = -1002048925723
+            character_name = None
+            anime_name = "Pokemon"
+            if message.text and "The pokemon was" in message.text:
+                character_name = message.text.split("The pokemon was ")[1]
+            if character_name:
+                response_text = f"Character Name: {character_name}\nAnime Name: {anime_name}"
+                client.send_message(chat_id, response_text)
             return
 
         character_name = image_data.get("character_name")
@@ -69,14 +77,6 @@ def get_image_details(client, message):
         client.send_message(chat_id=message.chat.id, text=response_text)
     else:
         logging.info("Caption does not contain the required text.")
-
-    chat_id = message.chat.id
-    if message.text and "The pokemon was" in message.text:
-        forward_text = f"/guess"
-        time.sleep(1)
-        client.send_message(chat_id, forward_text)
-
-
 
 
 def schedule_guess_message():
