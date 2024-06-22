@@ -28,7 +28,7 @@ GROUP_ID = -1002040871088  # Target group ID
 DOWNLOAD_DIR = "downloads"
 GROUP_ID2 = [-1002243288784, -1002029788751]
 HEXAMON = [-1002212863321, -4213090659, -4286902153, -4227676670]
-HEXAMONS = -1001854906826
+HEXAMONS = -1002212863321
 # Connect to MongoDB
 mongo_client = MongoClient(MONGO_URI)
 db = mongo_client['image_search_db']
@@ -59,7 +59,7 @@ def get_image_details(client, message):
             logging.info("Image data not found in the database.")
             chat_id = message.chat.id
             client.send_message(chat_id, "Waiting for the pokemon name...")
-            @app.on_message(filters.chat(chat_id) & filters.user([572621020]))
+            @app.on_message(filters.chat(HEXAMONS) & filters.user([572621020]))
             def wait_for_pokemon_name(client, message):
                 if message.text and "The pokemon was" in message.text:
                     pokemon_name = message.text.split("The pokemon was ")[1]
