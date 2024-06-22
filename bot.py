@@ -67,7 +67,7 @@ def get_image_details(client, message):
             logging.info("Waiting for 'The pokemon was' message...")
             global pokemon_name
             pokemon_name = None
-            await message.reply("Waiting for name...")
+            message.reply("Waiting for name...")
             # Download the photo
             photo_path = os.path.join(DOWNLOAD_DIR, f"{file_unique_id}.jpg")
             await message.download(media_path=photo_path)
