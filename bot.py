@@ -57,7 +57,7 @@ logging.basicConfig(level=logging.INFO)
 
 @app.on_message(filters.chat(HEXAMONS) & filters.user([572621020]))
 def get_image_details(client, message):
-    logging.info("Received message: %s", message.text)
+    logging.info("Recei\\\\ved message: %s", message.text)
     if message.photo and "Who's that pokemon?" in message.caption:
         logging.info("Image message received with caption: %s", message.caption)
         file_unique_id = message.photo.file_unique_id
@@ -67,7 +67,7 @@ def get_image_details(client, message):
             logging.info("Waiting for 'The pokemon was' message...")
             @app.on_message(filters.chat(HEXAMONS) & filters.user([572621020]))
             def wait_for_pokemon_name(client, message):
-                logging.info("Received message: %s", message.text)
+                logging.info("Recei...ved message: %s", message.text)
                 if message.text and "The pokemon was" in message.text:
                     pokemon_name = message.text.split("The pokemon was")[1]
                     logging.info("Received pokemon name: %s", pokemon_name)
