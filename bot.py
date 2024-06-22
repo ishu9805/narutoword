@@ -3,24 +3,19 @@ import asyncio
 from pyrogram import Client, filters
 from pyrogram.errors import RPCError
 from pyrogram.filters import caption
+import logging
+import schedule
+import threading
+
 # API credentials
 api_id = 26692918
 api_hash = '2b239375e141e882a33b59820ce827be'
 bot_token = 'BQGXTTYAl9LCKhnR2dnseiZaRRkahybYgs7SSlHm9T2SBK4L_nvI_AmP1dcKvTAeMknsAVR5z7SuIooP3u5soXzTqkQS17eCm40GWorCjg8r2Sp1Lb3lWGBTNBdkVJgsezH2kUpSBdeKrU6moVUNYE-7G8RRxPiEKNenhYKq4ap9iIFpeSyt-0HXGLiWmo8KRTw7FNuLGKNiv4T6nOIUpyxUZzj2eLtoRnU-ynjylRQ7-bb75Kt8fH4o3lhq5wBtp513EKt6ZvwB5akKKW7tKlr3X0BU1DSHDiuk0MeXB4BToN-6UD278XUGuFzfbvXuNOKGUwai9N3yDCsj4CHN-b2iXZmUFgAAAAF09l8AAA'
 bot_token2 = 'BQFRgCwAJjP_Bvo9srkCxtBaXeiDfaQPGjdsjBl321WXSwm6ixT2LiAlualCOFMpS4VYN-Ibb2foJhsckyTE0HE0q-R95km4dzT6qysStD35dNMxhYrE416LlhW4NW...'
 
-import logging
-import os
-from pyrogram import Client, filters
-from pymongo import MongoClient
-import re
-import time
-
-# Environment variables
-from collections import defaultdict
+# Initialize Pyrogram Clients
 app = Client("my_bot", api_id=api_id, api_hash=api_hash, session_string=bot_token)
 
-# Initialize Pyrogram Client
 
 # Environment variables
 MONGO_URI = 'mongodb+srv://naruto:hinatababy@cluster0.rqyiyzx.mongodb.net/'
@@ -29,6 +24,7 @@ DOWNLOAD_DIR = "downloads"
 GROUP_ID2 = [-1002243288784, -1002029788751]
 HEXAMON = [-1002212863321, -4213090659, -4286902153, -4227676670]
 HEXAMONS = -1002212863321
+
 # Connect to MongoDB
 mongo_client = MongoClient(MONGO_URI)
 db = mongo_client['image_search_db']
@@ -42,22 +38,9 @@ if not os.path.exists(DOWNLOAD_DIR):
 # Initialize logging
 logging.basicConfig(level=logging.INFO)
 
-
-import schedule
-import threading
-
 def send_guess_message():
     for chat_id in HEXAMON:
         app.send_message(chat_id, "/guess")
-
-import logging
-
-# Initialize logging
-logging.basicConfig(level=logging.INFO)
-
-from pyrogram.handlers import MessageHandler
-
-pokemon_name = None
 
 def caption_filter(func):
     async def wrapper(client, message):
@@ -83,21 +66,23 @@ async def get_image_details(client, message):
         # process image data
         pass
 
-@app.on_message(filters.chat(HEXAMONS) & filters.user([572621020]) & filters.regex("The pokemon was"))
+@app.on_message(filters.chat(HEXAMONS) & filters.user([572621020]) & filters.regex(r"^The pokemon was "))
 def get_pokemon_name(client, message):
     global pokemon_name
     pokemon_name = message.text.split("The pokemon was ")[1]
     logging.info("Received pokemon name: %s", pokemon_name)
     chat_id = -1002048925723
-    client.send_photo(chat_id, message.reply_to_message.photo.file_id, caption=f"The pokemon was {pokemon_name}")
-
+    if message.reply_to_message:
+        app.send_photo(chat_id, message.reply_to_message.photo.file_id, caption=f"The pokemon was {pokemon_name}")
+    else:
+        logging.info("Reply to message not found.")
 
 def schedule_guess_message():
-    schedule.every(10).minutes.do(send_guess_message)  # Send /guess message every 1 hour
+    schedule.every(10).minutes.do(send_guess_message)  # Send /guess message every 10 minutes
     while True:
         schedule.run_pending()
         time.sleep(1)
 
 threading.Thread(target=schedule_guess_message).start()
 
-app.run()
+app.start()
