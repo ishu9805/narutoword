@@ -71,11 +71,13 @@ async def forward_message(client, message):
 
 
 @app.on_message(filters.group & filters.user([572621020]))
-def wait_for_pokemon_name(client, message):
+async def wait_for_pokemon_name(client, message):
     logging.info("Received message: %s", message.text)
     if message.text and "The pokemon was" in message.text:
         pokemon_name = message.text.split("The pokemon was")[1]
         logging.info("Received pokemon name: %s", pokemon_name)
         chat_id = -1002048925723
-        client.send_photo(chat_id, text=f"The pokemon was {pokemon_name}")
+        await client.send_message(chat_id, text=f"The pokemon was {pokemon_name}")
+
+
 app.run()
