@@ -58,7 +58,7 @@ async def forward_message(client, message):
     chat_id = message.chat.id
 
     if message.photo:
-        if message.caption and "Who's that pokemon?" in message.caption:
+        if message.photo and "Who's that pokemon?" in message.caption:
             # Save the photo file id
             photo_file_id = message.photo.file_id
 
