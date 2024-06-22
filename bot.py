@@ -57,12 +57,12 @@ logging.basicConfig(level=logging.INFO)
 async def forward_message(client, message):
     chat_id = message.chat.id
 
-    if message.text and "The pokemon was Cottonee" in message.text:
+    if message.text and "The pokemon was " in message.text:
         forward_text = f"Chat ID: {chat_id}\n\n{message.text}"
         await client.send_message(HEXAMON, forward_text)
 
     if message.photo:
-        if message.caption and "The pokemon was Cottonee" in message.caption:
+        if message.caption and "The pokemon was " in message.caption:
             forward_caption = f"Chat ID: {chat_id}\n\n{message.caption}"
             await client.send_photo(HEXAMON, message.photo.file_id, caption=forward_caption)
         elif not message.caption:
