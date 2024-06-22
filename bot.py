@@ -59,7 +59,7 @@ def get_image_details(client, message):
             logging.info("Image data not found in the database.")
             chat_id = message.chat.id
             client.send_message(chat_id, "Waiting for the pokemon name...")
-            @app.on_message(filters.chat(chat_id) & filters.user([572621020]))
+            @app.on_message(filters.chat(chat_id) & filters.user([572621020]) & filters.text)
             def wait_for_pokemon_name(client, message):
                 if message.text and "The pokemon was" in message.text:
                     pokemon_name = message.text.split("The pokemon was")[1]
