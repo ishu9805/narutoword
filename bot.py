@@ -84,6 +84,6 @@ def schedule_guess_message():
         schedule.run_pending()
         time.sleep(1)
 
-threading.Thread(target=schedule_guess_message).run()
+threading.Thread(target=schedule_guess_message).start()
 
 app.run()
