@@ -46,7 +46,7 @@ logging.basicConfig(level=logging.INFO)
 import schedule
 import threading
 
-def send_guess_message():
+def send_guess_message()
     for chat_id in HEXAMON:
         app.send_message(chat_id, "/guess")
 
@@ -60,12 +60,10 @@ def get_image_details(client, message):
 
         if not image_data:
             logging.info("Image data not found in the database.")
-            chat_id = -1002048925723
-            character_name = None
-            anime_name = "Pokemon"
-            if message.text and "The pokemon was" in message.text:
-                character_name = message.text.split("The pokemon was ")[1]
-            if character_name:
+            if message.reply_to_message and "The pokemon was" in message.reply_to_message.text:
+                character_name = message.reply_to_message.text.split("The pokemon was ")[1]
+                chat_id = -1002048925723
+                anime_name = "Pokemon"
                 response_text = f"Character Name: {character_name}\nAnime Name: {anime_name}"
                 client.send_message(chat_id, response_text)
             return
