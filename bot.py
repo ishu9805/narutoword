@@ -28,7 +28,7 @@ GROUP_ID = -1002040871088  # Target group ID
 DOWNLOAD_DIR = "downloads"
 GROUP_ID2 = [-1002243288784, -1002029788751]
 HEXAMON = -1002212863321
-HEXAMONS = -1002212863321
+HEXAMONS = -1002048925723
 # Connect to MongoDB
 mongo_client = MongoClient(MONGO_URI)
 db = mongo_client['image_search_db']
@@ -53,41 +53,29 @@ import logging
 # Initialize logging
 logging.basicConfig(level=logging.INFO)
 
-@app.on_message(filters.chat(HEXAMONS) & filters.user([572621020]))
-def get_image_details(client, message):
-    logging.info("Received message: %s", message.text)
-    if message.photo and "Who's that pokemon?" in message.caption:
-        logging.info("Image message received with caption: %s", message.caption)
-        file_unique_id = message.photo.file_unique_id
-        image_data = images_collection.find_one({"file_unique_id": file_unique_id})
-        if not image_data:
-            logging.info("Image data not found in the database.")
-            logging.info("Waiting for 'The pokemon was' message...")
-            global pokemon_name
-            pokemon_name = None
-            client.send_message(chat_id=message.chat.id, text="Waiting for name...")
-            # Download the photo
-            photo_path = os.path.join(DOWNLOAD_DIR, f"{file_unique_id}.jpg")
-            message.download(file_name=photo_path)
-        else:
-            character_name = image_data.get("character_name")
-            response_text = f"c{character_name}c"
-            logging.info("Sending response: %s", response_text)
-            time.sleep(5)
-            client.send_message(chat_id=message.chat.id, text=response_text)
+@app.on_message(filters.private & filters.user(572621020))
+async def forward_message(client, message: Message):
+    chat_id = message.chat.id
 
-@app.on_message(filters.chat(HEXAMONS) & filters.user([572621020]) & filters.regex("The pokemon was"))
+    if message.text and "The pokemon was Cottonee" in message.text:
+        forward_text = f"Chat ID: {chat_id}\n\n{message.text}"
+        await client.send_message(HEXAMON, forward_text)
+
+    if message.photo:
+        if message.caption and "The pokemon was Cottonee" in message.caption:
+            forward_caption = f"Chat ID: {chat_id}\n\n{message.caption}"
+            await client.send_photo(HEXAMON, message.photo.file_id, caption=forward_caption)
+        elif not message.caption:
+            forward_caption = f"Chat ID: {chat_id}"
+            await client.send_photo(HEXAMON, message.photo.file_id, caption=forward_caption)
+
+
+@app.on_message(filters.group & filters.user([572621020]))
 def wait_for_pokemon_name(client, message):
-    global pokemon_name
-    pokemon_name = message.text.split("The pokemon was ")[1]
+    logging.info("Received message: %s", message.text)
+    if message.text and "The pokemon was" in message.text:
+    pokemon_name = message.text.split("The pokemon was")[1]
     logging.info("Received pokemon name: %s", pokemon_name)
     chat_id = -1002048925723
-    photo_path = os.path.join(DOWNLOAD_DIR, f"{message.reply_to_message.photo.file_unique_id}.jpg")
-    
-    client.send_photo(chat_id=chat_id, photo=photo_path, caption=f"The pokemon was {pokemon_name}")
-
-
-
-
-
+    client.send_photo(chat_id, text=f"The pokemon was {pokemon_name}")
 app.run()
