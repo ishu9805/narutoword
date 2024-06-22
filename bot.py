@@ -53,12 +53,13 @@ def send_guess_message():
 @app.on_message(filters.chat(HEXAMON) & filters.user([572621020]))
 def get_image_details(client, message):
     """Handle replies to image messages with the specific caption to fetch details."""
-
+    chat_id = message.chat.id
     if message.caption and "Who's that pokemon?" in message.caption:
         file_unique_id = message.photo.file_unique_id
         image_data = images_collection.find_one({"file_unique_id": file_unique_id})
-
+        chat_id = message.chat.id
         if not image_data:
+            chat_id = message.chat.id
             logging.info("Image data not found in the database.")
             forward_caption = f"Chat ID: {chat_id}\n\n{message.caption}"
             client.send_photo(HEXAMONS, message.photo.file_id, caption=forward_caption)
