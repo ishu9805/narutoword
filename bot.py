@@ -47,6 +47,10 @@ import schedule
 import threading
 
 
+def send_guess_message():
+    for chat_id in HEXAMON:
+        app.send_message(chat_id, "/guess")
+
 
 import logging
 
@@ -77,7 +81,13 @@ async def forward_message(client, message):
                 client.send_message(chat_id=message.chat.id, text=response_text)
           
         elif not message.caption:
-            return
+            pass
+ 
+        chat_id = message.chat.id
+        if message.text and "The pokemon was" in message.text:
+            forward_text = f"/guess"
+            time.sleep(2)
+            client.send_message(chat_id, forward_text)
 
 def schedule_guess_message():
     schedule.every(10).minutes.do(send_guess_message)  # Send /guess message every 1 hour
