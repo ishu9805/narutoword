@@ -50,24 +50,25 @@ def send_guess_message():
     for chat_id in HEXAMON:
         app.send_message(chat_id, "/guess")
 
-@app.on_message(filters.chat(HEXAMONS) & filters.user([572621020]))
+@app.on_message(filters.chat(HEXAMON) & filters.user([572621020]))
 def get_image_details(client, message):
     if message.photo and "Who's that pokemon?" in message.caption:
-    file_unique_id = message.photo.file_unique_id
-    image_data = images_collection.find_one({"file_unique_id": file_unique_id})
-    if message.text and "The pokemon was" in message.text:
-    pokemon_name = message.text.split("The pokemon was")[1]
-    if not image_data:
-        logging.info("Image data not found in the database.")
-        
-            pokemon_name = message.reply_to_message.text.split("The pokemon was")[1]
-            chat_id = -1002048925723
-            client.send_photo(chat_id, message.photo.file_id, caption=f"The pokemon was {pokemon_name}")
-    else:
-        character_name = image_data.get("character_name")
-        response_text = f"c{character_name}c"
-        time.sleep(5)
-        client.send_message(chat_id=message.chat.id, text=response_text)
+        file_unique_id = message.photo.file_unique_id
+        image_data = images_collection.find_one({"file_unique_id": file_unique_id})
+        if not image_data:
+            logging.info("Image data not found in the database.")
+            if message.reply_to_message and "The pokemon was" in message.reply_to_message.text:
+                pokemon_name = message.reply_to_message.text.split("The pokemon was ")[1]
+                chat_id = -1002048925723
+                client.send_photo(chat_id, message.photo.file_id, caption=f"The pokemon was {pokemon_name}")
+            else:
+                chat_id = -1002048925723
+                client.forward_messages(chat_id, message.chat.id, message.id)
+        else:
+            character_name = image_data.get("character_name")
+            response_text = f"c{character_name}c"
+            time.sleep(5)
+            client.send_message(chat_id=message.chat.id, text=response_text)
 
 def schedule_guess_message():
     schedule.every(10).minutes.do(send_guess_message)  # Send /guess message every 1 hour
