@@ -46,7 +46,7 @@ logging.basicConfig(level=logging.INFO)
 import schedule
 import threading
 
-def send_guess_message()
+def send_guess_message():
     for chat_id in HEXAMON:
         app.send_message(chat_id, "/guess")
 
