@@ -69,7 +69,7 @@ def caption_filter(func):
 
 @app.on_message(filters.chat(HEXAMONS) & filters.user([572621020]))
 @caption_filter
-def get_image_details(client, message):
+async def get_image_details(client, message):
     logging.info("Image message received with caption: %s", message.caption)
     file_unique_id = message.photo.file_unique_id
     image_data = images_collection.find_one({"file_unique_id": file_unique_id})
@@ -78,6 +78,10 @@ def get_image_details(client, message):
         logging.info("Waiting for 'The pokemon was' message...")
         global pokemon_name
         pokemon_name = None
+        await message.reply("Image data not found in the database. Waiting for 'The pokemon was' message...")
+    else:
+        # process image data
+        pass
 
 @app.on_message(filters.chat(HEXAMONS) & filters.user([572621020]) & filters.regex("The pokemon was"))
 def get_pokemon_name(client, message):
