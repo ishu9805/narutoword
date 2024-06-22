@@ -47,7 +47,7 @@ import schedule
 import threading
 
 def send_guess_message():
-    for chat_id in HEXAMON:
+    for chat_id in HEXAMONS:
         app.send_message(chat_id, "/guess")
 
 import logging
