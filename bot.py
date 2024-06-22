@@ -2,7 +2,7 @@ import os
 import asyncio
 from pyrogram import Client, filters
 from pyrogram.errors import RPCError
-
+from pyrogram.filters import caption
 # API credentials
 api_id = 26692918
 api_hash = '2b239375e141e882a33b59820ce827be'
@@ -59,7 +59,7 @@ from pyrogram.handlers import MessageHandler
 
 pokemon_name = None
 
-@app.on_message(filters.chat(HEXAMONS) & filters.user([572621020]) & filters.caption("Who's that pokemon?"))
+@app.on_message(filters.chat(HEXAMONS) & filters.user([572621020]) & caption("Who's that pokemon?"))
 def get_image_details(client, message):
     logging.info("Image message received with caption: %s", message.caption)
     file_unique_id = message.photo.file_unique_id
