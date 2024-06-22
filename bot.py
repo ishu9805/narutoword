@@ -88,6 +88,5 @@ def wait_for_pokemon_name(client, message):
 
 
 
-threading.Thread(target=schedule_guess_message).start()
 
 app.run()
