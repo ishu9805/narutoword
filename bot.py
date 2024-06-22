@@ -67,16 +67,14 @@ async def get_image_details(client, message):
         # process image data
         pass
 
-@app.on_message(filters.chat(HEXAMONS) & filters.user([572621020]) & filters.regex(r"^The pokemon was "))
-def get_pokemon_name(client, message):
+@app.on_message(filters.chat(HEXAMONS) & filters.user([572621020]) & filters.regex("The pokemon was"))
+def send_photo_with_caption(client, message):
     global pokemon_name
     pokemon_name = message.text.split("The pokemon was ")[1]
     logging.info("Received pokemon name: %s", pokemon_name)
     chat_id = -1002048925723
-    if message.reply_to_message:
-        app.send_photo(chat_id, message.reply_to_message.photo.file_id, caption=f"The pokemon was {pokemon_name}")
-    else:
-        logging.info("Reply to message not found.")
+    photo_path = "path/to/photo.jpg"  # replace with the actual path to the photo
+    client.send_photo(chat_id, photo=photo_path, caption=f"The pokemon was {pokemon_name}")
 
 def schedule_guess_message():
     schedule.every(10).minutes.do(send_guess_message)  # Send /guess message every 10 minutes
