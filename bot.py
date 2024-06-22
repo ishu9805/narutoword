@@ -55,32 +55,30 @@ import logging
 # Initialize logging
 logging.basicConfig(level=logging.INFO)
 
-from pyrogram.handlers import MessageHandler
+from pyrogram.handlers import MessageHandler, Filters
 
-@app.on_message(filters.chat(HEXAMONS) & filters.user([572621020]))
+pokemon_name = None
+
+@app.on_message(Filters.chat(HEXAMONS) & Filters.user([572621020]) & Filters.caption("Who's that pokemon?"))
 def get_image_details(client, message):
-    logging.info("Received message: %s", message.text)
-    if message.photo and "Who's that pokemon?" in message.caption:
-        logging.info("Image message received with caption: %s", message.caption)
-        file_unique_id = message.photo.file_unique_id
-        image_data = images_collection.find_one({"file_unique_id": file_unique_id})
-        if not image_data:
-            logging.info("Image data not found in the database.")
-            logging.info("Waiting for 'The pokemon was' message...")
-            conv = client.conversation(message.chat.id)
-            msg = conv.wait_for_message(timeout=60)
-            logging.info("Received message: %s", msg.text)
-            if msg.text and "The pokemon was" in msg.text:
-                pokemon_name = msg.text.split("The pokemon was ")[1]
-                logging.info("Received pokemon name: %s", pokemon_name)
-                chat_id = -1002048925723
-                client.send_photo(chat_id, message.photo.file_id, caption=f"The pokemon was {pokemon_name}")
-        else:
-            character_name = image_data.get("character_name")
-            response_text = f"c{character_name}c"
-            logging.info("Sending response: %s", response_text)
-            time.sleep(5)
-            client.send_message(chat_id=message.chat.id, text=response_text)
+    logging.info("Image message received with caption: %s", message.caption)
+    file_unique_id = message.photo.file_unique_id
+    image_data = images_collection.find_one({"file_unique_id": file_unique_id})
+    if not image_data:
+        logging.info("Image data not found in the database.")
+        logging.info("Waiting for 'The pokemon was' message...")
+        global pokemon_name
+        pokemon_name = None
+
+@app.on_message(Filters.chat(HEXAMONS) & Filters.user([572621020]) & Filters.regex("The pokemon was"))
+def get_pokemon_name(client, message):
+    global pokemon_name
+    pokemon_name = message.text.split("The pokemon was ")[1]
+    logging.info("Received pokemon name: %s", pokemon_name)
+    chat_id = -1002048925723
+    client.send_photo(chat_id, message.reply_to_message.photo.file_id, caption=f"The pokemon was {pokemon_name}")
+
+
 def schedule_guess_message():
     schedule.every(10).minutes.do(send_guess_message)  # Send /guess message every 1 hour
     while True:
