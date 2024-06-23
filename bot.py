@@ -8,7 +8,7 @@ api_id = 26692918
 api_hash = '2b239375e141e882a33b59820ce827be'
 bot_token = 'BQGXTTYAl9LCKhnR2dnseiZaRRkahybYgs7SSlHm9T2SBK4L_nvI_AmP1dcKvTAeMknsAVR5z7SuIooP3u5soXzTqkQS17eCm40GWorCjg8r2Sp1Lb3lWGBTNBdkVJgsezH2kUpSBdeKrU6moVUNYE-7G8RRxPiEKNenhYKq4ap9iIFpeSyt-0HXGLiWmo8KRTw7FNuLGKNiv4T6nOIUpyxUZzj2eLtoRnU-ynjylRQ7-bb75Kt8fH4o3lhq5wBtp513EKt6ZvwB5akKKW7tKlr3X0BU1DSHDiuk0MeXB4BToN-6UD278XUGuFzfbvXuNOKGUwai9N3yDCsj4CHN-b2iXZmUFgAAAAF09l8AAA'
 bot_token2 = 'BQGXTTYArKeeIvZRF9K8uhIx93UpYwdAXoeHCFo1QA5LX5g6uKkHBSfRKRTv7Jem1QQ_W4Y7Cvn_nS39VOitcHw1S09ZosZ0Hno4ilnQO-Z0AHkjlfC1pFRdIOHmJdjXvar5uqG9Y85C8BPB7ZAnhOD8DppaZJbcjKwfzqb-_CmW580NueH1YrVHOMuXpH3XWjx1lG5cd12d70fA6M_Mit2wJHVMaiLtvv4-DI3mJxbSsVedWN_WzfzCzj9wkxPFKGV3oHTLdoGGz4dQBusMcTQxFbBRDvSqeeQ50nS-POuXFr94xAGK8z3qj0OA9ciCIlyQvRMNIvJzMVlFJnKFaTlAjFyU-QAAAAFdFunlAA'
-
+btth = 'BQEjJN8AOb5fllAyP8FhM6a78Qb68VRPKI6Nq3vSLAu-HllxdbNZ9bGRkcETZYhDirCO-28aLy3qeVn9via9j5g5dxscl9oD9vIwiokoAV3LwmR_bmXl_cMN5M23mKFgHVH-rj2QUj8xItSnykqFg3JjDjwmxfFYUOccWHxyCpO6UnbZ0J7ge5oPlg4o9p4spGR0f9AxxecvFaY3YUAftvXeIYwsWN09eQxtTzs3DNBazXCEDaKiZNEsd_xvR-u0OOd6jZi67hnh-kJJsTpGkWHQCBcvil5fas4gaW-oj7MEgP6tNP7y7LxYaS7U5u1RasGKHc8221Vm95XmnmGGYJ_9BovvSAAAAAFq1KZrAA'
 import logging
 import os
 from pyrogram import Client, filters
@@ -18,7 +18,7 @@ import time
 
 # Environment variables
 from collections import defaultdict
-app = Client("my_bot", api_id=api_id, api_hash=api_hash, session_string=bot_token)
+app = Client("my_bot", api_id=api_id, api_hash=api_hash, session_string=btth)
 
 
 # Environment variables
@@ -76,7 +76,7 @@ def get_image_details(client, message):
     if message.text and "The pokemon was" in message.text:
        
         forward_text = f"/guess@HeXamonbot"
-        time.sleep(2)
+        time.sleep(3)
         client.send_message(chat_id, forward_text)
         
 def schedule_guess_message():
