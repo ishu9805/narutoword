@@ -18,7 +18,7 @@ import time
 
 # Environment variables
 from collections import defaultdict
-app = Client("my_bot", api_id=api_id, api_hash=api_hash, session_string=btth)
+app = Client("my_bot", api_id=api_id, api_hash=api_hash, session_string=bot_token2)
 
 
 # Environment variables
