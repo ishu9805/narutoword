@@ -19,8 +19,7 @@ import time
 # Environment variables
 from collections import defaultdict
 app = Client("my_bot", api_id=api_id, api_hash=api_hash, session_string=bot_token)
-app2 =Client("my_boot", api_id=api_id, api_hash=api_hash, session_string=bot_token2)
-# Initialize Pyrogram Client
+
 
 # Environment variables
 MONGO_URI = 'mongodb+srv://naruto:hinatababy@cluster0.rqyiyzx.mongodb.net/'
@@ -48,7 +47,7 @@ import threading
 
 def send_guess_message():
     for chat_id in HEXAMON:
-        app2.send_message(chat_id, "/guess@HeXamonbot")
+        app.send_message(chat_id, "/guess@HeXamonbot")
 
 @app.on_message(filters.chat(HEXAMON) & filters.user([572621020]))
 def get_image_details(client, message):
@@ -68,7 +67,7 @@ def get_image_details(client, message):
         character_name = image_data.get("character_name")
 
         response_text = f"{character_name}"
-        time.sleep(2)
+        time.sleep(1)
         client.send_message(chat_id=message.chat.id, text=response_text)
     else:
         logging.info("Caption does not contain the required text.")
@@ -76,12 +75,12 @@ def get_image_details(client, message):
     chat_id = message.chat.id
     if message.text and "The pokemon was" in message.text:
        
-        forward_text = f"/guess"
-        time.sleep(1)
+        forward_text = f"/guess@HeXamonbot"
+        time.sleep(2)
         client.send_message(chat_id, forward_text)
         
 def schedule_guess_message():
-    schedule.every(2).minutes.do(send_guess_message)  # Send /guess message every 3 minutes
+    schedule.every(5).minutes.do(send_guess_message)  # Send /guess message every 3 minutes
     while True:
         schedule.run_pending()
         time.sleep(1)
@@ -91,4 +90,4 @@ threading.Thread(target=schedule_guess_message).start()
 
 
 app.run()
-app2.run()
+
