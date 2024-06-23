@@ -7,7 +7,7 @@ from pyrogram.errors import RPCError
 api_id = 26692918
 api_hash = '2b239375e141e882a33b59820ce827be'
 bot_token = 'BQGXTTYAl9LCKhnR2dnseiZaRRkahybYgs7SSlHm9T2SBK4L_nvI_AmP1dcKvTAeMknsAVR5z7SuIooP3u5soXzTqkQS17eCm40GWorCjg8r2Sp1Lb3lWGBTNBdkVJgsezH2kUpSBdeKrU6moVUNYE-7G8RRxPiEKNenhYKq4ap9iIFpeSyt-0HXGLiWmo8KRTw7FNuLGKNiv4T6nOIUpyxUZzj2eLtoRnU-ynjylRQ7-bb75Kt8fH4o3lhq5wBtp513EKt6ZvwB5akKKW7tKlr3X0BU1DSHDiuk0MeXB4BToN-6UD278XUGuFzfbvXuNOKGUwai9N3yDCsj4CHN-b2iXZmUFgAAAAF09l8AAA'
-bot_token2 = 'BQFRgCwAJjP_Bvo9srkCxtBaXeiDfaQPGjdsjBl321WXSwm6ixT2LiAlualCOFMpS4VYN-Ibb2foJhsckyTE0HE0q-R95km4dzT6qysStD35dNMxhYrE416LlhW4NW...'
+bot_token2 = 'BQGXTTYAFI81Eo8Ig6Td_69GZM23ttzftPtc9SLRyPBaA626sCmkyQN0-L2PBgD235-bYVAxTtjAz2g2rDyg0iT2M0JAtvHUF3IYzTWbkIMpJf4gWAQnG-jHVVxBsijZcaIYULNLHenvn5WmqVmkfzEUeH5O4JxrY-Gz9K5CPVy3WKk9HjwDK0wO0lhldX1QOGqLkMKzcm4eiv_x9_eB3QnbtI_Ff7vD-2utNVVRHszp4nXBkLFMryqh7r8CvSeFPULW1IrpB5nNNkNxfQwp3YwIGecY3yjQkuhOGrpTI1kSrMmBtOCr9qlm9D2iSFNqkQuLl2_-g2J9D2j_k5SrvA--IV8NygAAAAFdFunlAA'
 
 import logging
 import os
@@ -19,7 +19,7 @@ import time
 # Environment variables
 from collections import defaultdict
 app = Client("my_bot", api_id=api_id, api_hash=api_hash, session_string=bot_token)
-
+app2 =Client("my_boot", api_id=api_id, api_hash=api_hash, session_string=bot_token2)
 # Initialize Pyrogram Client
 
 # Environment variables
@@ -48,7 +48,7 @@ import threading
 
 def send_guess_message():
     for chat_id in HEXAMON:
-        app.send_message(chat_id, "/guess")
+        app2.send_message(chat_id, "/guess@HeXamonbot")
 
 @app.on_message(filters.chat(HEXAMON) & filters.user([572621020]))
 def get_image_details(client, message):
@@ -80,15 +80,15 @@ def get_image_details(client, message):
         time.sleep(1)
         client.send_message(chat_id, forward_text)
         
-
-
-
 def schedule_guess_message():
-    schedule.every(1).minutes.do(send_guess_message)  # Send /guess message every 1 hour
+    schedule.every(2).minutes.do(send_guess_message)  # Send /guess message every 3 minutes
     while True:
         schedule.run_pending()
         time.sleep(1)
 
+
 threading.Thread(target=schedule_guess_message).start()
 
+
 app.run()
+app2.run()
