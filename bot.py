@@ -9,6 +9,7 @@ api_hash = '2b239375e141e882a33b59820ce827be'
 session_string = '7461505284:AAFsqEwWww1GZakSa9oLyalchIY03PTLQu8'
 bot_token2 = 'BQFRgCwAJjP_Bvo9srkCxtBaXeiDfaQPGjdsjBl321WXSwm6ixT2LiAlualCOFMpS4VYN-Ibb2foJhsckyTE0HE0q-R95km4dzT6qysStD35dNMxhYrE416LlhW4NW...'
 
+
 HANDLER = "."
 processed_results = set()
 stop_scraping = False  # Initialize stop_scraping globally
@@ -92,3 +93,32 @@ async def scrap2_handler_self(client, message):
                         result_id = result.id
                         if result_id in processed_results:
                             continue  # Skip sending if result is already processed
+
+
+                            await client.send_inline_bot_result(chat_id, results.query_id, result_id)
+                            processed_results.add(result_id)
+                            await asyncio.sleep(2)  # Adjust delay as needed
+
+                    # Check if there are more results
+                    if results.next_offset:
+                        offset = results.next_offset
+                    else:
+                        break  # No more results to fetch
+
+                else:
+                    await client.send_message(chat_id, "No results found.")
+                    break
+
+            except RPCError as e:
+                await client.send_message(chat_id, f"Error occurred while querying: {e}")
+                await asyncio.sleep(10)  # Delay before retrying in case of RPC errors
+
+            except Exception as e:
+                await client.send_message(chat_id, f"Unexpected error: {e}")
+                break
+
+    finally:
+        stop_scraping = False  # Reset stop flag after scraping ends
+
+if name == "main":
+    app.run()
