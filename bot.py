@@ -120,5 +120,5 @@ async def scrap2_handler_self(client, message):
     finally:
         stop_scraping = False  # Reset stop flag after scraping ends
 
-if name == "main":
-    app.run()
+
+app.run()
