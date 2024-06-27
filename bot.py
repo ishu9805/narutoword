@@ -6,88 +6,89 @@ from pyrogram.errors import RPCError
 # API credentials
 api_id = 26692918
 api_hash = '2b239375e141e882a33b59820ce827be'
-bot_token = 'BQGXTTYAl9LCKhnR2dnseiZaRRkahybYgs7SSlHm9T2SBK4L_nvI_AmP1dcKvTAeMknsAVR5z7SuIooP3u5soXzTqkQS17eCm40GWorCjg8r2Sp1Lb3lWGBTNBdkVJgsezH2kUpSBdeKrU6moVUNYE-7G8RRxPiEKNenhYKq4ap9iIFpeSyt-0HXGLiWmo8KRTw7FNuLGKNiv4T6nOIUpyxUZzj2eLtoRnU-ynjylRQ7-bb75Kt8fH4o3lhq5wBtp513EKt6ZvwB5akKKW7tKlr3X0BU1DSHDiuk0MeXB4BToN-6UD278XUGuFzfbvXuNOKGUwai9N3yDCsj4CHN-b2iXZmUFgAAAAF09l8AAA'
-bot_token2 = 'BQGXTTYArKeeIvZRF9K8uhIx93UpYwdAXoeHCFo1QA5LX5g6uKkHBSfRKRTv7Jem1QQ_W4Y7Cvn_nS39VOitcHw1S09ZosZ0Hno4ilnQO-Z0AHkjlfC1pFRdIOHmJdjXvar5uqG9Y85C8BPB7ZAnhOD8DppaZJbcjKwfzqb-_CmW580NueH1YrVHOMuXpH3XWjx1lG5cd12d70fA6M_Mit2wJHVMaiLtvv4-DI3mJxbSsVedWN_WzfzCzj9wkxPFKGV3oHTLdoGGz4dQBusMcTQxFbBRDvSqeeQ50nS-POuXFr94xAGK8z3qj0OA9ciCIlyQvRMNIvJzMVlFJnKFaTlAjFyU-QAAAAFdFunlAA'
-btth = 'BQEjJN8AOb5fllAyP8FhM6a78Qb68VRPKI6Nq3vSLAu-HllxdbNZ9bGRkcETZYhDirCO-28aLy3qeVn9via9j5g5dxscl9oD9vIwiokoAV3LwmR_bmXl_cMN5M23mKFgHVH-rj2QUj8xItSnykqFg3JjDjwmxfFYUOccWHxyCpO6UnbZ0J7ge5oPlg4o9p4spGR0f9AxxecvFaY3YUAftvXeIYwsWN09eQxtTzs3DNBazXCEDaKiZNEsd_xvR-u0OOd6jZi67hnh-kJJsTpGkWHQCBcvil5fas4gaW-oj7MEgP6tNP7y7LxYaS7U5u1RasGKHc8221Vm95XmnmGGYJ_9BovvSAAAAAFq1KZrAA'
-import logging
-import os
-from pyrogram import Client, filters
-from pymongo import MongoClient
-import re
-import time
+session_string = '7461505284:AAFsqEwWww1GZakSa9oLyalchIY03PTLQu8'
+bot_token2 = 'BQFRgCwAJjP_Bvo9srkCxtBaXeiDfaQPGjdsjBl321WXSwm6ixT2LiAlualCOFMpS4VYN-Ibb2foJhsckyTE0HE0q-R95km4dzT6qysStD35dNMxhYrE416LlhW4NW...'
 
-# Environment variables
-from collections import defaultdict
-app = Client("my_bot", api_id=api_id, api_hash=api_hash, session_string=bot_token)
+HANDLER = "."
+processed_results = set()
+stop_scraping = False  # Initialize stop_scraping globally
 
+app = Client("my_bot", api_id=api_id, api_hash=api_hash, bot_token=session_string)
 
-# Environment variables
-MONGO_URI = 'mongodb+srv://naruto:hinatababy@cluster0.rqyiyzx.mongodb.net/'
-GROUP_ID = -1002040871088  # Target group ID
-DOWNLOAD_DIR = "downloads"
-GROUP_ID2 = [-1002243288784, -1002029788751]
-HEXAMON = [-1002212863321, -4213090659, -4286902153, -1002237969026, -1002189762536]
-HEXAMONS = -1002048925723
-# Connect to MongoDB
-mongo_client = MongoClient(MONGO_URI)
-db = mongo_client['image_search_db']
-images_collection = db['images']
-pokemon_collection = db['poki']
+@app.on_message(filters.command("stoped", HANDLER) & filters.user(6257270528))
+async def stop_message(client, message):
+    global stop_scraping
+    stop_scraping = True
+    await message.reply("Stopping the bot...")
 
-# Create download directory if it doesn't exist
-if not os.path.exists(DOWNLOAD_DIR):
-    os.makedirs(DOWNLOAD_DIR)
-
-# Initialize logging
-logging.basicConfig(level=logging.INFO)
-
-
-import schedule
-import threading
-
-def send_guess_message():
-    for chat_id in HEXAMON:
-        app.send_message(chat_id, "/guess@HeXamonbot")
-
-@app.on_message(filters.chat(HEXAMON) & filters.user([572621020]))
-def get_image_details(client, message):
-    """Handle replies to image messages with the specific caption to fetch details."""
-    chat_id = message.chat.id
-    if message.caption and "Who's that pokemon?" in message.caption:
-        file_unique_id = message.photo.file_unique_id
-        image_data = images_collection.find_one({"file_unique_id": file_unique_id})
-        chat_id = message.chat.id
-        if not image_data:
-            chat_id = message.chat.id
-            logging.info("Image data not found in the database.")
-            forward_caption = f"Chat ID: {chat_id}\n\n{message.caption}"
-            client.send_photo(chat_id, message.photo.file_id, caption=forward_caption)
+@app.on_message(filters.command("scrap", HANDLER) & filters.user(6257270528))
+async def scrap_handler_self(client, message):
+    global stop_scraping
+    try:
+        if len(message.command) < 2:
+            await message.reply("Usage: .scrap [botusername]")
             return
 
-        character_name = image_data.get("character_name")
+        bot_username = message.command[1]
+        chat_id = message.chat.id
 
-        response_text = f"{character_name}"
-        time.sleep(1)
-        client.send_message(chat_id=message.chat.id, text=response_text)
-    else:
-        logging.info("Caption does not contain the required text.")
+        offset = ""
+        while not stop_scraping:
+            try:
+                results = await client.get_inline_bot_results(bot=bot_username, query="", offset=offset)
 
-    chat_id = message.chat.id
-    if message.text and "The pokemon was" in message.text:
-       
-        forward_text = f"/guess@HeXamonbot"
-        time.sleep(3)
-        client.send_message(chat_id, forward_text)
-        
-def schedule_guess_message():
-    schedule.every(5).minutes.do(send_guess_message)  # Send /guess message every 3 minutes
-    while True:
-        schedule.run_pending()
-        time.sleep(1)
+                if results.results:
+                    sorted_results = sorted(results.results, key=lambda x: x.id)  # Sort results by ID
+                    for result in sorted_results:
+                        result_id = result.id
+                        if result_id in processed_results:
+                            continue  # Skip sending if result is already processed
 
+                        await client.send_inline_bot_result(chat_id, results.query_id, result_id)
+                        processed_results.add(result_id)
+                        await asyncio.sleep(2)  # Adjust delay as needed
 
-threading.Thread(target=schedule_guess_message).start()
+                    # Check if there are more results
+                    if results.next_offset:
+                        offset = results.next_offset
+                    else:
+                        break  # No more results to fetch
 
+                else:
+                    await client.send_message(chat_id, "No results found.")
+                    break
 
-app.run()
+            except RPCError as e:
+                await client.send_message(chat_id, f"Error occurred while querying: {e}")
+                await asyncio.sleep(10)  # Delay before retrying in case of RPC errors
 
+            except Exception as e:
+                await client.send_message(chat_id, f"Unexpected error: {e}")
+                break
+
+    finally:
+        stop_scraping = False  # Reset stop flag after scraping ends
+
+@app.on_message(filters.command("scrap2", HANDLER) & filters.user(6257270528))
+async def scrap2_handler_self(client, message):
+    global stop_scraping
+    try:
+        if len(message.command) < 3:
+            await message.reply("Usage: .scrap2 [botusername] [query]")
+            return
+
+        bot_username = message.command[1]
+        query = message.command[2]
+        chat_id = message.chat.id
+
+        offset = ""
+        while not stop_scraping:
+            try:
+                results = await client.get_inline_bot_results(bot=bot_username, query=query, offset=offset)
+
+                if results.results:
+                    sorted_results = sorted(results.results, key=lambda x: x.id)  # Sort results by ID
+                    for result in sorted_results:
+                        result_id = result.id
+                        if result_id in processed_results:
+                            continue  # Skip sending if result is already processed
