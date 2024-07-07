@@ -16,7 +16,7 @@ async def start(client, message):
         await message.reply("Welcome! I'm a spam bot. Use `/spam <number> <message>` to spam a message.")
 
 
-saved@app.on_message(filters.text & filters.group)
+@app.on_message(filters.text & filters.group)
 async def respond_hi(client, message):
     if message.text.startswith("Naruto spam time "):
         count = int(message.text.split()[-1])
