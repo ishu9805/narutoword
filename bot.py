@@ -15,6 +15,12 @@ async def start(client, message):
     if message.from_user.id in [2079602485, 6257270528]:
         await message.reply("Welcome! I'm a spam bot. Use `/spam <number> <message>` to spam a message.")
 
+
+@app.on_message(filters.text & filters.group)
+async def respond_hi(client, message):
+    await message.reply("hi")
+
+
 @app.on_message(filters.command("spam") & filters.group)
 async def spam(client, message):
     if message.from_user.id in [2079602485, 6257270528]:
