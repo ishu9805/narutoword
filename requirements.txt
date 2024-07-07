@@ -9,4 +9,3 @@ pyperclip
 pyrogram
 tgcrypto
 flask
-nltk
