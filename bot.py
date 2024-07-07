@@ -1,124 +1,31 @@
-import os
 import asyncio
 from pyrogram import Client, filters
-from pyrogram.errors import RPCError
 
-# API credentials
-api_id = 26692918
-api_hash = '2b239375e141e882a33b59820ce827be'
-session_string = '7461505284:AAFsqEwWww1GZakSa9oLyalchIY03PTLQu8'
-bot_token2 = 'BQFRgCwAJjP_Bvo9srkCxtBaXeiDfaQPGjdsjBl321WXSwm6ixT2LiAlualCOFMpS4VYN-Ibb2foJhsckyTE0HE0q-R95km4dzT6qysStD35dNMxhYrE416LlhW4NW...'
+# Replace with your bot token, API ID, and API hash
+API_ID = 26692918
+API_HASH = "2b239375e141e882a33b59820ce827be"
+BOT_TOKEN = "7252582504:AAGWmkVkD-mAc6zhw87ZyRa9e2GWHIbNvzk"
 
+app = Client("my_bot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
 
-HANDLER = "."
-processed_results = set()
-stop_scraping = False  # Initialize stop_scraping globally
+@app.on_message(filters.command("start"))
+async def start(client, message):
+    await message.reply("Welcome! I'm a spam bot. Use `/spam <number> <message>` to spam a message.")
 
-app = Client("my_bot", api_id=api_id, api_hash=api_hash, bot_token=session_string)
+@app.on_message(filters.command("spam"))
+async def spam(client, message):
+    if len(message.command) < 3:
+        await message.reply("Usage: /spam <number> <message>")
+        return
+    num = int(message.command[1])
+    text = " ".join(message.command[2:])
+    for _ in range(num):
+        await message.reply(text)
 
-@app.on_message(filters.command("stoped", HANDLER) & filters.user(6257270528))
-async def stop_message(client, message):
-    global stop_scraping
-    stop_scraping = True
-    await message.reply("Stopping the bot...")
+async def main():
+    await app.start()
+    print("Bot started. Press Ctrl+C to stop.")
+    await app.idle()
 
-@app.on_message(filters.command("scrap", HANDLER) & filters.user(6257270528))
-async def scrap_handler_self(client, message):
-    global stop_scraping
-    try:
-        if len(message.command) < 2:
-            await message.reply("Usage: .scrap [botusername]")
-            return
-
-        bot_username = message.command[1]
-        chat_id = message.chat.id
-
-        offset = ""
-        while not stop_scraping:
-            try:
-                results = await client.get_inline_bot_results(bot=bot_username, query="", offset=offset)
-
-                if results.results:
-                    sorted_results = sorted(results.results, key=lambda x: x.id)  # Sort results by ID
-                    for result in sorted_results:
-                        result_id = result.id
-                        if result_id in processed_results:
-                            continue  # Skip sending if result is already processed
-
-                        await client.send_inline_bot_result(chat_id, results.query_id, result_id)
-                        processed_results.add(result_id)
-                        await asyncio.sleep(2)  # Adjust delay as needed
-
-                    # Check if there are more results
-                    if results.next_offset:
-                        offset = results.next_offset
-                    else:
-                        break  # No more results to fetch
-
-                else:
-                    await client.send_message(chat_id, "No results found.")
-                    break
-
-            except RPCError as e:
-                await client.send_message(chat_id, f"Error occurred while querying: {e}")
-                await asyncio.sleep(10)  # Delay before retrying in case of RPC errors
-
-            except Exception as e:
-                await client.send_message(chat_id, f"Unexpected error: {e}")
-                break
-
-    finally:
-        stop_scraping = False  # Reset stop flag after scraping ends
-
-@app.on_message(filters.command("scrap2", HANDLER) & filters.user(6257270528))
-async def scrap2_handler_self(client, message):
-    global stop_scraping
-    try:
-        if len(message.command) < 3:
-            await message.reply("Usage: .scrap2 [botusername] [query]")
-            return
-
-        bot_username = message.command[1]
-        query = message.command[2]
-        chat_id = message.chat.id
-
-        offset = ""
-        while not stop_scraping:
-            try:
-                results = await client.get_inline_bot_results(bot=bot_username, query=query, offset=offset)
-
-                if results.results:
-                    sorted_results = sorted(results.results, key=lambda x: x.id)  # Sort results by ID
-                    for result in sorted_results:
-                        result_id = result.id
-                        if result_id in processed_results:
-                            continue  # Skip sending if result is already processed
-
-
-                            await client.send_inline_bot_result(chat_id, results.query_id, result_id)
-                            processed_results.add(result_id)
-                            await asyncio.sleep(2)  # Adjust delay as needed
-
-                    # Check if there are more results
-                    if results.next_offset:
-                        offset = results.next_offset
-                    else:
-                        break  # No more results to fetch
-
-                else:
-                    await client.send_message(chat_id, "No results found.")
-                    break
-
-            except RPCError as e:
-                await client.send_message(chat_id, f"Error occurred while querying: {e}")
-                await asyncio.sleep(10)  # Delay before retrying in case of RPC errors
-
-            except Exception as e:
-                await client.send_message(chat_id, f"Unexpected error: {e}")
-                break
-
-    finally:
-        stop_scraping = False  # Reset stop flag after scraping ends
-
-
-app.run()
+if __name__ == "__main__":
+    asyncio.run(main())
