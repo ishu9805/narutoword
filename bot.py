@@ -40,6 +40,7 @@ async def spam(client, message):
             spamming = True
             for _ in range(num):
                 await message.reply(text)
+                await asyncio.sleep(1)
             spamming = False
         except ValueError:
             await message.reply("Invalid number. Please enter a valid integer.")
