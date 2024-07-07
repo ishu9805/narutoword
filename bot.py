@@ -3,8 +3,8 @@ from pyrogram import Client, filters
 
 # Replace with your bot token, API ID, and API hash
 API_ID = 26692918
-API_HASH = "2b239375e141e882a33b59820ce827be"
-BOT_TOKEN = "7252582504:AAGWmkVkD-mAc6zhw87ZyRa9e2GWHIbNvzk"
+API_HASH = '2b239375e141e882a33b59820ce827be'
+BOT_TOKEN = '7252582504:AAGWmkVkD-mAc6zhw87ZyRa9e2GWHIbNvzk'
 
 app = Client("my_bot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
 
@@ -22,4 +22,4 @@ async def spam(client, message):
     for _ in range(num):
         await message.reply(text)
 
-app.start()
+app.run()
