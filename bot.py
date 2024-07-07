@@ -22,10 +22,4 @@ async def spam(client, message):
     for _ in range(num):
         await message.reply(text)
 
-async def main():
-    await app.start()
-    print("Bot started. Press Ctrl+C to stop.")
-    await app.idle()
-
-if __name__ == "__main__":
-    asyncio.run(main())
+app.start()
