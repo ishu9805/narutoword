@@ -15,4 +15,4 @@ RUN pip install --upgrade pip \
 EXPOSE 8080
 
 # Command to run the application
-CMD ["python", "bot.py"]
+CMD ["python3", "bot.py"]
