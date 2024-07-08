@@ -18,12 +18,12 @@ async def start(client, message):
 
 @app.on_message(filters.text & filters.group)
 async def respond_hi(client, message):
-    if message.text.startswith("Naruto spam time "):
+    if message.text.startswith("Naruto spam kar "):
         count = int(message.text.split()[-1])
         for _ in range(count):
             await message.reply(".")
     else:
-        await message.reply("hi")
+        return
 
 
 app.run()
